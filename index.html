@@ -5,68 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-    <style>function generateSearchResultWithGemini(query) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
-    
-    const body = JSON.stringify({
-        contents: [{
-            parts: [{
-                text: `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                As a search engine:
-                1. Start with a brief, direct answer to the query if applicable.
-                2. Provide detailed, factual information related to the query.
-                3. Include relevant statistics, dates, or figures if appropriate.
-                4. Mention different perspectives or viewpoints on the topic if relevant.
-                5. If the query is about a current event, provide the most up-to-date information available.
-                6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                7. End with a brief conclusion or summary of the key points.
-                Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`
-            }]
-        }]
-    });
-
-    return fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: body
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
-        } else {
-            console.error('Unexpected response structure:', JSON.stringify(data));
-            throw new Error('Unexpected response structure from Gemini API');
-        }
-    })
-    .catch(error => {
-        console.error('Error generating search result:', error);
-        return `Error generating search result: ${error.message}. Please check your API key and network connection.`;
-    });
-}
-        /* General reset */
+    <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        /* Font Import */
-        @font-face {
-            font-family: 'VT323';
-            src: url('https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2') format('woff2');
-        }
-        /* Body styling */
         body {
-            font-family: 'VT323', 'Courier New', monospace;
+            font-family: 'Courier New', monospace;
             background-color: #000;
             background-image: url('images/BG.png');
             background-size: 800px 449px;
@@ -81,7 +27,6 @@
             min-height: 100vh;
             overflow: auto;
         }
-        /* Container styling */
         .container {
             position: relative;
             z-index: 1;
@@ -95,7 +40,6 @@
             margin: 0 auto;
             overflow-y: auto;
         }
-        /* Header styling */
         h1 {
             text-align: center;
             color: #FF8C00;
@@ -103,13 +47,11 @@
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(255, 140, 0, 0.5);
         }
-        /* Form styling */
         #searchForm {
             display: flex;
             margin-bottom: 15px;
         }
-        /* Input, button, and select styling */
-        input, button, select {
+        input, button {
             background-color: #000;
             color: #FF8C00;
             border: 1px solid #FF8C00;
@@ -122,15 +64,12 @@
             margin-right: 10px;
             border-radius: 5px 0 0 5px;
         }
-        select {
-            margin-right: 10px;
-        }
         button {
             border-radius: 0 5px 5px 0;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        input:focus, button:focus, select:focus {
+        input:focus, button:focus {
             outline: none;
             box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
         }
@@ -138,7 +77,6 @@
             background-color: #FF8C00;
             color: #000;
         }
-        /* Suggestions styling */
         #suggestions {
             margin-bottom: 15px;
             display: flex;
@@ -161,7 +99,6 @@
             background-color: #FF8C00;
             color: #000;
         }
-        /* Results and images styling */
         #results {
             background-color: #0A0A0A;
             border: 1px solid #FF8C00;
@@ -180,14 +117,12 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
         }
-        /* Summary styling */
         #summary {
             font-size: 1em;
             line-height: 1.6;
             padding: 10px 0;
             white-space: normal;
         }
-        /* Metadata and footer styling */
         #metadata {
             margin-top: 15px;
             font-size: 0.8em;
@@ -217,12 +152,11 @@
         </footer>
     </div>
     <script>
-        // Function to load configuration
         function loadConfig() {
             return {
-                    GOOGLE_API_KEY: 'AIzaSyAv0eINGFdlMmMdCB-JsgyJ7C1uDHYMNhQ',
-                    GOOGLE_SEARCH_ENGINE_ID: 'c1415a5bba2664a8c',
-                    GEMINI_API_KEY: 'AIzaSyAyw0c8vilVPLyCp7XqDi99OhLsrx33sTw'
+                GOOGLE_API_KEY: 'YOUR_GOOGLE_API_KEY',
+                GOOGLE_SEARCH_ENGINE_ID: 'YOUR_GOOGLE_SEARCH_ENGINE_ID',
+                GEMINI_API_KEY: 'YOUR_GEMINI_API_KEY'
             };
         }
 
@@ -240,6 +174,76 @@
             typeWriter();
         }
 
+        function searchImagesWithGoogle(query, numImages = 4) {
+            const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image`;
+            return fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch images');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.items && Array.isArray(data.items)) {
+                        return data.items.map(item => ({
+                            url: item.link
+                        }));
+                    }
+                    return [];
+                })
+                .catch(error => {
+                    console.error('Error fetching images:', error);
+                    return [];
+                });
+        }
+
+        function generateSearchResultWithGemini(query) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
+            
+            const body = JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
+                        As a search engine:
+                        1. Start with a brief, direct answer to the query if applicable.
+                        2. Provide detailed, factual information related to the query.
+                        3. Include relevant statistics, dates, or figures if appropriate.
+                        4. Mention different perspectives or viewpoints on the topic if relevant.
+                        5. If the query is about a current event, provide the most up-to-date information available.
+                        6. If the query is unclear, interpret it in the most likely way and respond accordingly.
+                        7. End with a brief conclusion or summary of the key points.
+                        Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`
+                    }]
+                }]
+            });
+
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: body
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    return data.candidates[0].content.parts[0].text;
+                } else {
+                    console.error('Unexpected response structure:', JSON.stringify(data));
+                    throw new Error('Unexpected response structure from Gemini API');
+                }
+            })
+            .catch(error => {
+                console.error('Error generating search result:', error);
+                return `Error generating search result: ${error.message}. Please check your API key and network connection.`;
+            });
+        }
+
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const query = document.getElementById('searchInput').value;
@@ -247,397 +251,14 @@
             const summary = document.getElementById('summary');
             const metadata = document.getElementById('metadata');
 
-            // Reset content before starting a new query
             results.innerHTML = 'Processing query...';
             summary.textContent = '';
             metadata.textContent = '';
 
-            // Function to search for images using Google Custom Search API
-            function searchImagesWithGoogle(query, numImages = 4) {
-                const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image`;
-                return fetch(url)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to fetch images');
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.items && Array.isArray(data.items)) {
-                            return data.items.map(item => ({
-                                url: item.link
-                            }));
-                        }
-                        return [];
-                    })
-                    .catch(error => {
-                        console.error('Error fetching images:', error);
-                        return []; // Return an empty array if an error occurs
-                    });
-            }
-
-            // Function to generate search results using Google Gemini API
-           function generateSearchResultWithGemini(query) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
-    
-    const body = JSON.stringify({
-        contents: [{
-            parts: [{
-                text: `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                As a search engine:
-                1. Start with a brief, direct answer to the query if applicable.
-                2. Provide detailed, factual information related to the query.
-                3. Include relevant statistics, dates, or figures if appropriate.
-                4. Mention different perspectives or viewpoints on the topic if relevant.
-                5. If the query is about a current event, provide the most up-to-date information available.
-                6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                7. End with a brief conclusion or summary of the key points.
-                Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`
-            }]
-        }]
-    });
-
-    return fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: body
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
-            });
-        }
-        return response.json();
-    })
-    .then(data => { function generateSearchResultWithGemini(query) {
-                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                    As a search engine:
-                    1. Start with a brief, direct answer to the query if applicable.
-                    2. Provide detailed, factual information related to the query.
-                    3. Include relevant statistics, dates, or figures if appropriate.
-                    4. Mention different perspectives or viewpoints on the topic if relevant.
-                    5. If the query is about a current event, provide the most up-to-date information available.
-                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                    7. End with a brief conclusion or summary of the key points.
-                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: {
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        }
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                    return response.json();
-                })
-                .then(data  function generateSearchResultWithGemini(query) {
-                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                    As a search engine:
-                    1. Start with a brief, direct answer to the query if applicable.
-                    2. Provide detailed, factual information related to the query.
-                    3. Include relevant statistics, dates, or figures if appropriate.
-                    4. Mention different perspectives or viewpoints on the topic if relevant.
-                    5. If the query is about a current event, provide the most up-to-date information available.
-                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                    7. End with a brief conclusion or summary of the key points.
-                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: {
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        }
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        return data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error('No search result generated from Gemini');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating search result:', error);
-                    return `Error generating search result: ${error.message}`;
-                });
-            }
- function generateSearchResultWithGemini(query) {
-                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                    As a search engine:
-                    1. Start with a brief, direct answer to the query if applicable.
-                    2. Provide detailed, factual information related to the query.
-                    3. Include relevant statistics, dates, or figures if appropriate.
-                    4. Mention different perspectives or viewpoints on the topic if relevant.
-                    5. If the query is about a current event, provide the most up-to-date information available.
-                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                    7. End with a brief conclusion or summary of the key points.
-                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: {
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        }
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                    return response.json();
-                }) function generateSearchResultWithGemini(query) {
-                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                    As a search engine:
-                    1. Start with a brief, direct answer to the query if applicable.
-                    2. Provide detailed, factual information related to the query.
-                    3. Include relevant statistics, dates, or figures if appropriate.
-                    4. Mention different perspectives or viewpoints on the topic if relevant.
-                    5. If the query is about a current event, provide the most up-to-date information available.
-                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                    7. End with a brief conclusion or summary of the key points.
-                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: {
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        }
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        return data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error('No search result generated from Gemini');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating search result:', error);
-                    return `Error generating search result: ${error.message}`;
-                });
-            } function generateSearchResultWithGemini(query) {
-                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                    As a search engine:
-                    1. Start with a brief, direct answer to the query if applicable.
-                    2. Provide detailed, factual information related to the query.
-                    3. Include relevant statistics, dates, or figures if appropriate.
-                    4. Mention different perspectives or viewpoints on the topic if relevant.
-                    5. If the query is about a current event, provide the most up-to-date information available.
-                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                    7. End with a brief conclusion or summary of the key points.
-                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: {
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        }
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        return data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error('No search result generated from Gemini');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating search result:', error);
-                    return `Error generating search result: ${error.message}`;
-                });
-            }
-
- function generateSearchResultWithGemini(query) {
-                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                    As a search engine:
-                    1. Start with a brief, direct answer to the query if applicable.
-                    2. Provide detailed, factual information related to the query.
-                    3. Include relevant statistics, dates, or figures if appropriate.
-                    4. Mention different perspectives or viewpoints on the topic if relevant.
-                    5. If the query is about a current event, provide the most up-to-date information available.
-                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                    7. End with a brief conclusion or summary of the key points.
-                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: {
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        }
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        return data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error('No search result generated from Gemini');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating search result:', error);
-                    return `Error generating search result: ${error.message}`;
-                });
-            }
- function generateSearchResultWithGemini(query) {
-                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                    As a search engine:
-                    1. Start with a brief, direct answer to the query if applicable.
-                    2. Provide detailed, factual information related to the query.
-                    3. Include relevant statistics, dates, or figures if appropriate.
-                    4. Mention different perspectives or viewpoints on the topic if relevant.
-                    5. If the query is about a current event, provide the most up-to-date information available.
-                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-                    7. End with a brief conclusion or summary of the key points.
-                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: {
-                            contents: [{
-                                parts: [{
-                                    text: prompt
-                                }]
-                            }]
-                        }
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        return data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error('No search result generated from Gemini');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating search result:', error);
-                    return `Error generating search result: ${error.message}`;
-                });
-            }
-
-                .then(data => {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        return data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error('No search result generated from Gemini');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating search result:', error);
-                    return `Error generating search result: ${error.message}`;
-                });
-            }
-=> {
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        return data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error('No search result generated from Gemini');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating search result:', error);
-                    return `Error generating search result: ${error.message}`;
-                });
-            }
-
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
-        } else {
-            console.error('Unexpected response structure:', JSON.stringify(data));
-            throw new Error('Unexpected response structure from Gemini API');
-        }
-    })
-    .catch(error => {
-        console.error('Error generating search result:', error);
-        return `Error generating search result: ${error.message}. Please check your API key and network connection.`;
-    });
-}
-            // Execute both functions in parallel
             Promise.all([searchImagesWithGoogle(query), generateSearchResultWithGemini(query)])
                 .then(([images, searchResult]) => {
-                    // Clear the loading message
                     results.innerHTML = '';
 
-                    // Display images, if found
                     if (images && images.length > 0) {
                         images.forEach(image => {
                             const img = document.createElement('img');
@@ -652,26 +273,22 @@
                         results.textContent = 'No images found.';
                     }
 
-                    // Display summary with typewriter effect
                     summary.innerHTML = `<h2>${query}</h2>`;
                     const summaryContent = document.createElement('div');
                     summary.appendChild(summaryContent);
                     typeWriterEffect(searchResult || 'No search result available.', summaryContent);
 
-                    // Display metadata
                     metadata.innerHTML = '<h2>Metadata</h2>';
                     metadata.innerHTML += `<p>Query: ${query}</p>`;
                     metadata.innerHTML += `<p>API: Google AI Studio (Gemini) & Google Custom Search</p>`;
                 })
                 .catch(error => {
-                    // Handle and display any error that occurs during the promises
                     console.error('Error:', error);
                     results.textContent = `An error occurred while processing your query: ${error.message}`;
                     summary.textContent = `Unable to generate search results at this time. ${error.message}`;
                 });
         });
 
-        // Suggestions for quick queries
         const questions = [
             "What is today's breaking news?",
             "Trends in computer science technology",
@@ -681,7 +298,6 @@
         const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
         document.getElementById('suggestions').innerHTML = suggestionsHtml;
 
-        // Add click events for each suggestion
         document.querySelectorAll('.question').forEach(q => {
             q.addEventListener('click', function() {
                 document.getElementById('searchInput').value = this.textContent;
