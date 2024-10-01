@@ -1,3 +1,6 @@
+// Load environment variables
+require('dotenv').config();
+
 // Check internet connection
 function checkInternetConnection() {
     return fetch('https://www.google.com', { mode: 'no-cors', cache: 'no-store' })
@@ -37,7 +40,7 @@ document.getElementById('searchForm').addEventListener('submit', async function 
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${CONFIG.SERPER_API_KEY}`
+                        'Authorization': `Bearer ${process.env.SERPER_API_KEY}`
                     },
                     body: JSON.stringify({
                         q: query,
@@ -72,7 +75,7 @@ document.getElementById('searchForm').addEventListener('submit', async function 
         async function searchImagesWithGoogle(query, numImages = 4) {
             console.log('Starting Google Image search with query:', query);
             try {
-                const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image&sort=date`;
+                const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_API_KEY}&cx=${process.env.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image&sort=date`;
                 const response = await fetchWithTimeout(url);
 
                 if (!response.ok) {
@@ -120,7 +123,7 @@ document.getElementById('searchForm').addEventListener('submit', async function 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
             },
             body: JSON.stringify({
                 model: 'llama2-70b',
@@ -147,7 +150,7 @@ document.getElementById('searchForm').addEventListener('submit', async function 
         results.innerHTML = `Error processing query: ${error.message}. Please try again or contact support if the problem persists.`;
     }
 });
-
+ 
 function prepareContext(snippets, images) {
     let context = "Web Search Results:\n";
     snippets.forEach((s, index) => {
