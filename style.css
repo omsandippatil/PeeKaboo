@@ -1,0 +1,165 @@
+/* General reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Font Import */
+@font-face {
+    font-family: 'VT323';
+    src: url('https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2') format('woff2');
+}
+
+/* Body styling */
+body {
+    font-family: 'VT323', 'Courier New', monospace;
+    background-color: #000;
+    background-image: url('images/BG.png');
+    background-size: 800px 449px; /* Adjust the size to zoom in while repeating */
+    background-repeat: repeat; /* Keep the image repeating */
+    background-attachment: scroll;
+    background-position: top left;
+    color: #FF8C00;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow: auto;
+}
+
+/* Container styling */
+.container {
+    position: relative;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid #FF8C00;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    overflow-y: auto;
+}
+
+/* Header styling */
+h1 {
+    text-align: center;
+    color: #FF8C00;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(255, 140, 0, 0.5);
+}
+
+/* Form styling */
+#searchForm {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+/* Input, button, and select styling */
+input, button, select {
+    background-color: #000;
+    color: #FF8C00;
+    border: 1px solid #FF8C00;
+    font-family: inherit;
+    font-size: 1em;
+    padding: 10px;
+}
+
+input {
+    flex: 1;
+    margin-right: 10px;
+    border-radius: 5px 0 0 5px;
+}
+
+select {
+    margin-right: 10px;
+}
+
+button {
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input:focus, button:focus, select:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+}
+
+button:hover {
+    background-color: #FF8C00;
+    color: #000;
+}
+
+/* Suggestions styling */
+#suggestions {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.question {
+    display: inline-block;
+    margin: 2px;
+    padding: 3px 8px;
+    background-color: #1A1A1A;
+    color: #FF8C00;
+    border: 1px solid #FF8C00;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.question:hover {
+    background-color: #FF8C00;
+    color: #000;
+}
+
+/* Results and images styling */
+#results {
+    background-color: #0A0A0A;
+    border: 1px solid #FF8C00;
+    border-radius: 5px;
+    padding: 15px;
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    height: 200px;
+}
+
+#results img {
+    flex: 0 0 200px;
+    height: 100%;
+    object-fit: cover;
+    margin-right: 5px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+}
+
+/* Summary styling */
+#summary {
+    font-size: 1em;
+    line-height: 1.6;
+    padding: 10px 0;
+    white-space: normal;
+}
+
+/* Metadata and footer styling */
+#metadata {
+    margin-top: 15px;
+    font-size: 0.8em;
+    color: #666;
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.8em;
+    color: #666;
+}
