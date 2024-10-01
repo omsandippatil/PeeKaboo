@@ -120,27 +120,28 @@ button:hover {
     background-color: #FF8C00;
     color: #000;
 }
-
-/* Results and images styling */
+ 
 #results {
-    background-color: #0A0A0A;
-    border: 1px solid #FF8C00;
-    border-radius: 5px;
-    padding: 15px;
-    display: flex;
-    overflow-x: auto;
-    white-space: nowrap;
-    height: 200px;
+    background-color: #0A0A0A;  /* Dark background color */
+    border: 1px solid #FF8C00;  /* Orange border */
+    border-radius: 5px;  /* Rounded corners */
+    padding: 15px;  /* Padding inside the container */
+    display: flex;  /* Flexbox layout to handle images */
+    overflow-x: auto;  /* Enable horizontal scrolling */
+    white-space: nowrap;  /* Prevent images from wrapping to a new line */
+    height: auto;  /* Adjust height based on the content */
+    margin-top: 10px;  /* Add space above the results container */
+}
+ 
+#results img {
+    flex: 0 0 auto;  /* Ensure images do not shrink or grow */
+    width: 200px;  /* Set a fixed width for images */
+    height: auto;  /* Maintain the aspect ratio of images */
+    margin-right: 10px;  /* Add spacing between images */
+    border-radius: 8px;  /* Rounded corners for images */
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);  /* Orange shadow around images */
 }
 
-#results img {
-    flex: 0 0 200px;
-    height: 100%;
-    object-fit: cover;
-    margin-right: 5px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
-}
 
 /* Summary styling */
 #summary {
