@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+
     <style>
         * {
             box-sizing: border-box;
@@ -134,167 +135,157 @@
             font-size: 0.8em;
             color: #666;
         }
-    </style>
+        </style>
+    <script src="Config/config.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>PeeKaboo?</h1>
-        <form id="searchForm">
-            <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
-            <button type="submit">EXECUTE</button>
-        </form>
-        <div id="suggestions"></div>
-        <div id="results"></div>
-        <div id="summary"></div>
-        <div id="metadata"></div>
-        <footer>
-            &copy; 2024 PeeKaboo | Powered by Illuminati
-        </footer>
-    </div>
-    <script>
-        function loadConfig() {
-            return {
-                GOOGLE_API_KEY: 'AIzaSyAv0eINGFdlMmMdCB-JsgyJ7C1uDHYMNhQ',
-                GOOGLE_SEARCH_ENGINE_ID: 'c1415a5bba2664a8c',
-                GEMINI_API_KEY: 'AIzaSyAyw0c8vilVPLyCp7XqDi99OhLsrx33sTw'
-            };
-        }
-
-        const CONFIG = loadConfig();
-
-        function typeWriterEffect(content, element, speed = 50) {
-            let i = 0;
-            function typeWriter() {
-                if (i < content.length) {
-                    element.innerHTML += content.charAt(i);
+<div class="container">
+    <h1>PeeKaboo?</h1>
+    <form id="searchForm">
+        <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
+        <button type="submit">EXECUTE</button>
+    </form>
+    <div id="suggestions"></div>
+    <div id="results"></div>
+    <div id="summary"></div>
+    <div id="metadata"></div>
+    <footer>
+        &copy; 2024 PeeKaboo | Powered by Illuminati
+    </footer>
+</div>
+<script>
+    function typeWriterEffect(content, element, speed = 5) {
+        const sentences = content.split('\n\n');
+        element.innerHTML = '';
+    
+        let i = 0;
+        let j = 0;
+        let currentSentence = '';
+        let isTyping = false;
+    
+        function type() {
+            if (i < sentences.length) {
+                if (!isTyping) {
+                    currentSentence = sentences[i];
+                    isTyping = true;
+                    const p = document.createElement('p');
+                    element.appendChild(p);
+                }
+    
+                const p = element.lastElementChild;
+                const char = currentSentence.charAt(j);
+                p.innerHTML += char;
+                j++;
+    
+                if (j >= currentSentence.length) {
+                    j = 0;
                     i++;
-                    setTimeout(typeWriter, speed);
+                    isTyping = false;
+                    setTimeout(type, speed * 2);
+                } else {
+                    requestAnimationFrame(type);
                 }
             }
-            typeWriter();
         }
+    
+        type();
+    }
+
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = document.getElementById('searchInput').value;
+        const results = document.getElementById('results');
+        const summary = document.getElementById('summary');
+        const metadata = document.getElementById('metadata');
+        results.innerHTML = 'Processing query...';
+        summary.textContent = '';
+        metadata.textContent = '';
 
         function searchImagesWithGoogle(query, numImages = 4) {
             const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image`;
+
             return fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch images');
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    if (data.items && Array.isArray(data.items)) {
+                    if (data.items) {
                         return data.items.map(item => ({
-                            url: item.link
+                            url: item.link,
                         }));
                     }
                     return [];
-                })
-                .catch(error => {
-                    console.error('Error fetching images:', error);
-                    return [];
                 });
         }
 
-        function generateSearchResultWithGemini(query) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
-            
-            const body = JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
-                        As a search engine`
-                    }]
-                }]
-            });
+        function generateSummaryWithGemini(query) {
+            const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+            const prompt = `Provide a detailed summary of the following query: "${query}". The summary should be informative, engaging, and approximately 300 words long.`;
 
-            return fetch(url, {
+            return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: body
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }]
+                })
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
-                    });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                     return data.candidates[0].content.parts[0].text;
-                } else {
-                    console.error('Unexpected response structure:', JSON.stringify(data));
-                    throw new Error('Unexpected response structure from Gemini API');
                 }
-            })
-            .catch(error => {
-                console.error('Error generating search result:', error);
-                return `Error generating search result: ${error.message}. Please check your API key and network connection.`;
+                throw new Error('No summary generated');
             });
         }
 
-        document.getElementById('searchForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const query = document.getElementById('searchInput').value;
-            const results = document.getElementById('results');
-            const summary = document.getElementById('summary');
-            const metadata = document.getElementById('metadata');
+        Promise.all([searchImagesWithGoogle(query), generateSummaryWithGemini(query)])
+            .then(([images, summaryText]) => {
+                results.innerHTML = '';
+                if (images.length > 0) {
+                    images.forEach(image => {
+                        const img = document.createElement('img');
+                        img.src = image.url;
+                        img.alt = 'Image';
+                        img.style.width = 'auto';
+                        img.style.flex = '1 1 auto';
+                        results.appendChild(img);
+                    });
+                } else {
+                    results.textContent = 'No images found.';
+                }
 
-            results.innerHTML = 'Processing query...';
-            summary.textContent = '';
-            metadata.textContent = '';
+                summary.innerHTML = `<h2>${query}</h2>`;
+                const summaryContent = document.createElement('div');
+                summary.appendChild(summaryContent);
+                typeWriterEffect(summaryText, summaryContent);
 
-            Promise.all([searchImagesWithGoogle(query), generateSearchResultWithGemini(query)])
-                .then(([images, searchResult]) => {
-                    results.innerHTML = '';
-
-                    if (images && images.length > 0) {
-                        images.forEach(image => {
-                            const img = document.createElement('img');
-                            img.src = image.url;
-                            img.alt = 'Image';
-                            img.style.width = 'auto';
-                            img.style.maxHeight = '200px';
-                            img.style.flex = '1 1 auto';
-                            results.appendChild(img);
-                        });
-                    } else {
-                        results.textContent = 'No images found.';
-                    }
-
-                    summary.innerHTML = `<h2>${query}</h2>`;
-                    const summaryContent = document.createElement('div');
-                    summary.appendChild(summaryContent);
-                    typeWriterEffect(searchResult || 'No search result available.', summaryContent);
-
-                    metadata.innerHTML = '<h2>Metadata</h2>';
-                    metadata.innerHTML += `<p>Query: ${query}</p>`;
-                    metadata.innerHTML += `<p>API: Google AI Studio (Gemini) & Google Custom Search</p>`;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    results.textContent = `An error occurred while processing your query: ${error.message}`;
-                    summary.textContent = `Unable to generate search results at this time. ${error.message}`;
-                });
-        });
-
-        const questions = [
-            "What is today's breaking news?",
-            "Trends in computer science technology",
-            "Software Testing Methods",
-            "Why is interstellar the best movie?"
-        ];
-        const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
-        document.getElementById('suggestions').innerHTML = suggestionsHtml;
-
-        document.querySelectorAll('.question').forEach(q => {
-            q.addEventListener('click', function() {
-                document.getElementById('searchInput').value = this.textContent;
+                metadata.innerHTML = '<h2>Metadata</h2>';
+                metadata.innerHTML += `<p>Query: ${query}</p>`;
+                metadata.innerHTML += `<p>API: Google AI Studio (Gemini) & Google Custom Search</p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                results.textContent = `An error occurred while processing your query: ${error.message}`;
             });
+    });
+
+    const questions = [
+        "What is today's breaking news?",
+        "Trends in computer science technology",
+        "Software Testing Methods",
+        "Why is interstellar the best movie?"
+    ];
+    const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
+    document.getElementById('suggestions').innerHTML = suggestionsHtml;
+    document.querySelectorAll('.question').forEach(q => {
+        q.addEventListener('click', function() {
+            document.getElementById('searchInput').value = this.textContent;
         });
-    </script>
+    });
+</script>
 </body>
 </html>
