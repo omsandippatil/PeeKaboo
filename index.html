@@ -3,253 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeeKaboo?</title>
+    <title>Web Scraping and AI Context</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Courier New', monospace;
-            background-color: #000;
-            background-image: url('images/BG.png');
-            background-size: 800px 449px;
-            background-repeat: repeat;
-            background-attachment: scroll;
-            background-position: top left;
-            color: #FF8C00;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            line-height: 1.6;
-            min-height: 100vh;
-            overflow: auto;
-        }
-        .container {
-            position: relative;
-            z-index: 1;
-            background-color: rgba(0, 0, 0, 0.8);
-            border: 1px solid #FF8C00;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-            overflow-y: auto;
-        }
-        h1 {
-            text-align: center;
-            color: #FF8C00;
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(255, 140, 0, 0.5);
-        }
-        #searchForm {
-            display: flex;
-            margin-bottom: 15px;
-        }
-        input, button {
-            background-color: #000;
-            color: #FF8C00;
-            border: 1px solid #FF8C00;
-            font-family: inherit;
-            font-size: 1em;
-            padding: 10px;
-        }
-        input {
-            flex: 1;
-            margin-right: 10px;
-            border-radius: 5px 0 0 5px;
-        }
-        button {
-            border-radius: 0 5px 5px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        input:focus, button:focus {
-            outline: none;
-            box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
-        }
-        button:hover {
-            background-color: #FF8C00;
-            color: #000;
-        }
-        #suggestions {
-            margin-bottom: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-        .question {
-            display: inline-block;
-            margin: 2px;
-            padding: 3px 8px;
-            background-color: #1A1A1A;
-            color: #FF8C00;
-            border: 1px solid #FF8C00;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-        }
-        .question:hover {
-            background-color: #FF8C00;
-            color: #000;
-        }
-        #results {
-            background-color: #0A0A0A;
-            border: 1px solid #FF8C00;
-            border-radius: 5px;
-            padding: 15px;
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            height: 200px;
-        }
-        #results img {
-            flex: 0 0 200px;
-            height: 100%;
-            object-fit: cover;
-            margin-right: 5px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
-        }
-        #summary {
-            font-size: 1em;
-            line-height: 1.6;
-            padding: 10px 0;
-            white-space: normal;
-        }
-        #metadata {
-            margin-top: 15px;
-            font-size: 0.8em;
-            color: #666;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.8em;
-            color: #666;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Courier New', monospace; background-color: #000; color: #FF8C00; padding: 20px; min-height: 100vh; }
+        .container { background-color: rgba(0, 0, 0, 0.8); border: 1px solid #FF8C00; border-radius: 10px; padding: 20px; margin: 0 auto; }
+        h1 { text-align: center; color: #FF8C00; font-size: 2.5em; margin-bottom: 20px; }
+        #searchForm { display: flex; margin-bottom: 15px; }
+        input, button { background-color: #000; color: #FF8C00; border: 1px solid #FF8C00; font-size: 1em; padding: 10px; }
+        input { flex: 1; margin-right: 10px; border-radius: 5px 0 0 5px; }
+        button { border-radius: 0 5px 5px 0; cursor: pointer; }
+        button:hover { background-color: #FF8C00; color: #000; }
+        #results { background-color: #0A0A0A; padding: 15px; display: flex; flex-direction: column; }
+        footer { text-align: center; margin-top: 20px; font-size: 0.8em; color: #666; }
     </style>
     <script src="Config/config.js"></script>
 </head>
 <body>
-<div class="container">
-    <h1>PeeKaboo?</h1>
-    <form id="searchForm">
-        <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
-        <button type="submit">EXECUTE</button>
-    </form>
-    <div id="suggestions"></div>
-    <div id="results"></div>
-    <div id="summary"></div>
-    <div id="metadata"></div>
-    <footer>
-        &copy; 2024 PeeKaboo | Powered by Illuminati
-    </footer>
-</div>
-<script>
-    document.getElementById('searchForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const query = document.getElementById('searchInput').value;
-        const results = document.getElementById('results');
-        const summary = document.getElementById('summary');
-        const metadata = document.getElementById('metadata');
-        results.innerHTML = 'Processing query...';
-        summary.textContent = '';
-        metadata.textContent = '';
+    <div class="container">
+        <h1>Web Scraper AI</h1>
+        <form id="searchForm">
+            <input type="text" id="searchInput" placeholder="Enter a query..." required>
+            <button type="submit">Search</button>
+        </form>
+        <div id="results"></div>
+        <footer>&copy; 2024 Web Scraper AI</footer>
+    </div>
 
-        function searchWikipedia(query) {
-            const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value;
+            const results = document.getElementById('results');
+            results.innerHTML = 'Fetching data...';
 
-            return fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.query && data.query.search && data.query.search.length > 0) {
-                        const result = data.query.search[0];
-                        return {
-                            title: result.title,
-                            snippet: result.snippet,
-                            pageUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(result.title)}`
-                        };
+            // Function to scrape the web and fetch data from multiple websites
+            async function scrapeAndSummarize(query) {
+                try {
+                    // Fetch data using web scraping
+                    const response = await fetch(`/scrape?query=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+
+                    if (data && data.content) {
+                        // Use the AI API to generate a summary of the scraped data
+                        const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${CONFIG.GEMINI_API_KEY}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: `Summarize the following content: ${data.content}` }] }]
+                            })
+                        });
+
+                        const aiData = await aiResponse.json();
+                        if (aiData && aiData.candidates && aiData.candidates[0]) {
+                            results.innerHTML = `<h2>${query}</h2><p>${aiData.candidates[0].content.parts[0].text}</p>`;
+                        } else {
+                            results.innerHTML = 'No summary available.';
+                        }
                     } else {
-                        return {title: 'No results found', snippet: '', pageUrl: '#'};
+                        results.innerHTML = 'No data found.';
                     }
-                });
-        }
-
-        function typeWriterEffect(content, element, speed = 5) {
-            const sentences = content.split('\n\n');
-            element.innerHTML = '';
-
-            let i = 0;
-            let j = 0;
-            let currentSentence = '';
-            let isTyping = false;
-
-            function type() {
-                if (i < sentences.length) {
-                    if (!isTyping) {
-                        currentSentence = sentences[i];
-                        isTyping = true;
-                        const p = document.createElement('p');
-                        element.appendChild(p);
-                    }
-
-                    const p = element.lastElementChild;
-                    const char = currentSentence.charAt(j);
-                    p.innerHTML += char;
-                    j++;
-
-                    if (j >= currentSentence.length) {
-                        j = 0;
-                        i++;
-                        isTyping = false;
-                        setTimeout(type, speed * 2);
-                    } else {
-                        requestAnimationFrame(type);
-                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    results.textContent = `An error occurred: ${error.message}`;
                 }
             }
 
-            type();
-        }
-
-        searchWikipedia(query)
-            .then(result => {
-                results.innerHTML = '';
-                summary.innerHTML = `<h2>${result.title}</h2>`;
-                const summaryContent = document.createElement('div');
-                summary.appendChild(summaryContent);
-                typeWriterEffect(result.snippet, summaryContent);
-
-                metadata.innerHTML = '<h2>Metadata</h2>';
-                metadata.innerHTML += `<p>Query: ${query}</p>`;
-                metadata.innerHTML += `<p>Source: <a href="${result.pageUrl}" target="_blank">${result.title}</a></p>`;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                results.textContent = `An error occurred while processing your query: ${error.message}`;
-            });
-    });
-
-    const questions = [
-        "What is today's breaking news?",
-        "Trends in computer science technology",
-        "Software Testing Methods",
-        "Why is interstellar the best movie?"
-    ];
-    const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
-    document.getElementById('suggestions').innerHTML = suggestionsHtml;
-    document.querySelectorAll('.question').forEach(q => {
-        q.addEventListener('click', function () {
-            document.getElementById('searchInput').value = this.textContent;
+            // Execute the scraping and summarization
+            scrapeAndSummarize(query);
         });
-    });
-</script>
+    </script>
 </body>
 </html>
