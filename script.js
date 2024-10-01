@@ -1,4 +1,21 @@
-document.getElementById('searchForm').addEventListener('submit', function (e) {
+// Check internet connection
+function checkInternetConnection() {
+    return fetch('https://www.google.com', { mode: 'no-cors', cache: 'no-store' })
+        .then(() => true)
+        .catch(() => false);
+}
+
+// Wrapper for fetch with timeout
+function fetchWithTimeout(url, options, timeout = 10000) {
+    return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timed out')), timeout)
+        )
+    ]);
+}
+
+document.getElementById('searchForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const query = document.getElementById('searchInput').value;
     const results = document.getElementById('results');
@@ -6,61 +23,65 @@ document.getElementById('searchForm').addEventListener('submit', function (e) {
     results.innerHTML = 'Processing query...';
     summary.textContent = '';
 
-    // Use Serper for latest web search
-    function searchWithSerper(query, numSources = 15) {
-        console.log('Starting Serper search with query:', query);
-        return fetch(`https://api.serper.dev/search`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${CONFIG.SERPER_API_KEY}`
-            },
-            body: JSON.stringify({
-                q: query,
-                num: numSources,
-                tbs: 'qdr:d' // This parameter requests results from the past 24 hours
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                console.error('Serper response failed:', response.status, response.statusText);
-                throw new Error(`Serper API request failed: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Serper data:', data);
-            if (data.organic && data.organic.length > 0) {
-                return data.organic.map(item => ({
-                    url: item.link,
-                    snippet: item.snippet || '',
-                    title: item.title || '',
-                    date: item.date || 'Recent'
-                }));
-            }
-            throw new Error('No organic results found in Serper response');
-        })
-        .catch(error => {
-            console.error('Error fetching from Serper:', error);
-            throw error;
-        });
-    }
+    try {
+        const isOnline = await checkInternetConnection();
+        if (!isOnline) {
+            throw new Error('No internet connection');
+        }
 
-    // Use Google for latest image search
-    function searchImagesWithGoogle(query, numImages = 4) {
-        console.log('Starting Google Image search with query:', query);
-        const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image&sort=date`;
+        // Use Serper for latest web search
+        async function searchWithSerper(query, numSources = 15) {
+            console.log('Starting Serper search with query:', query);
+            try {
+                const response = await fetchWithTimeout(`https://api.serper.dev/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${CONFIG.SERPER_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        q: query,
+                        num: numSources,
+                        tbs: 'qdr:d'
+                    })
+                });
 
-        return fetch(url)
-            .then(response => {
                 if (!response.ok) {
-                    console.error('Google Image Search response failed:', response.status, response.statusText);
+                    throw new Error(`Serper API request failed: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Serper data:', data);
+
+                if (data.organic && data.organic.length > 0) {
+                    return data.organic.map(item => ({
+                        url: item.link,
+                        snippet: item.snippet || '',
+                        title: item.title || '',
+                        date: item.date || 'Recent'
+                    }));
+                }
+                throw new Error('No organic results found in Serper response');
+            } catch (error) {
+                console.error('Error in searchWithSerper:', error);
+                throw error;
+            }
+        }
+
+        // Use Google for latest image search
+        async function searchImagesWithGoogle(query, numImages = 4) {
+            console.log('Starting Google Image search with query:', query);
+            try {
+                const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image&sort=date`;
+                const response = await fetchWithTimeout(url);
+
+                if (!response.ok) {
                     throw new Error(`Google Image Search API request failed: ${response.status} ${response.statusText}`);
                 }
-                return response.json();
-            })
-            .then(data => {
+
+                const data = await response.json();
                 console.log('Google Image data:', data);
+
                 if (data.items && data.items.length > 0) {
                     return data.items.map(item => ({
                         url: item.link,
@@ -69,37 +90,33 @@ document.getElementById('searchForm').addEventListener('submit', function (e) {
                     }));
                 }
                 throw new Error('No image results found in Google response');
-            })
-            .catch(error => {
-                console.error('Error fetching images from Google:', error);
+            } catch (error) {
+                console.error('Error in searchImagesWithGoogle:', error);
                 throw error;
-            });
-    }
+            }
+        }
 
-    // Perform the searches and process results
-    Promise.all([
-        searchWithSerper(query).catch(error => {
-            console.error('Serper search failed:', error);
-            return [];
-        }),
-        searchImagesWithGoogle(query).catch(error => {
-            console.error('Google Image search failed:', error);
-            return [];
-        })
-    ])
-    .then(([textResults, imageResults]) => {
+        // Perform the searches
+        const [textResults, imageResults] = await Promise.all([
+            searchWithSerper(query).catch(error => {
+                console.error('Serper search failed:', error);
+                return [];
+            }),
+            searchImagesWithGoogle(query).catch(error => {
+                console.error('Google Image search failed:', error);
+                return [];
+            })
+        ]);
+
         if (textResults.length === 0 && imageResults.length === 0) {
             throw new Error('Both text and image searches failed to return results');
         }
 
-        console.log('Serper Results:', textResults);
-        console.log('Google Images:', imageResults);
-
         const context = prepareContext(textResults, imageResults);
 
-        // Send data to Groq for summarization with context
+        // Send data to Groq for summarization
         console.log('Sending data to Groq for summarization:', context);
-        return fetch('https://api.groq.dev/summarize', {
+        const groqResponse = await fetchWithTimeout('https://api.groq.dev/summarize', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -109,27 +126,26 @@ document.getElementById('searchForm').addEventListener('submit', function (e) {
                 model: 'llama2-70b',
                 prompt: `Summarize the following information, focusing on the most recent and relevant details. Highlight any notable recent developments or changes:\n\n${context}`
             })
-        })
-        .then(response => {
-            if (!response.ok) {
-                console.error('Groq response failed:', response.status, response.statusText);
-                throw new Error(`Groq API request failed: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(summaryData => {
-            console.log('Groq summary data:', summaryData);
-            if (!summaryData.summary) {
-                throw new Error('No summary provided in Groq response');
-            }
-            typeWriter(summaryData.summary, summary);
-            displayResults(textResults, imageResults, results);
         });
-    })
-    .catch(error => {
+
+        if (!groqResponse.ok) {
+            throw new Error(`Groq API request failed: ${groqResponse.status} ${groqResponse.statusText}`);
+        }
+
+        const summaryData = await groqResponse.json();
+        console.log('Groq summary data:', summaryData);
+
+        if (!summaryData.summary) {
+            throw new Error('No summary provided in Groq response');
+        }
+
+        typeWriter(summaryData.summary, summary);
+        displayResults(textResults, imageResults, results);
+
+    } catch (error) {
         console.error('Error in processing the query:', error);
         results.innerHTML = `Error processing query: ${error.message}. Please try again or contact support if the problem persists.`;
-    });
+    }
 });
 
 function prepareContext(snippets, images) {
