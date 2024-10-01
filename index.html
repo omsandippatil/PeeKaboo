@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peekaboo</title>
+    <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
     <style>
         * {
@@ -12,7 +11,6 @@
             margin: 0;
             padding: 0;
         }
-
         body {
             font-family: 'Courier New', monospace;
             background-color: #000;
@@ -29,7 +27,6 @@
             min-height: 100vh;
             overflow: auto;
         }
-
         .container {
             position: relative;
             z-index: 1;
@@ -43,7 +40,6 @@
             margin: 0 auto;
             overflow-y: auto;
         }
-
         h1 {
             text-align: center;
             color: #FF8C00;
@@ -51,14 +47,11 @@
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(255, 140, 0, 0.5);
         }
-
         #searchForm {
             display: flex;
             margin-bottom: 15px;
         }
-
-        input,
-        button {
+        input, button {
             background-color: #000;
             color: #FF8C00;
             border: 1px solid #FF8C00;
@@ -66,37 +59,30 @@
             font-size: 1em;
             padding: 10px;
         }
-
         input {
             flex: 1;
             margin-right: 10px;
             border-radius: 5px 0 0 5px;
         }
-
         button {
             border-radius: 0 5px 5px 0;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
-        input:focus,
-        button:focus {
+        input:focus, button:focus {
             outline: none;
             box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
         }
-
         button:hover {
             background-color: #FF8C00;
             color: #000;
         }
-
         #suggestions {
             margin-bottom: 15px;
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
         }
-
         .question {
             display: inline-block;
             margin: 2px;
@@ -109,12 +95,10 @@
             font-size: 0.9em;
             transition: all 0.3s ease;
         }
-
         .question:hover {
             background-color: #FF8C00;
             color: #000;
         }
-
         #results {
             background-color: #0A0A0A;
             border: 1px solid #FF8C00;
@@ -125,7 +109,6 @@
             white-space: nowrap;
             height: 200px;
         }
-
         #results img {
             flex: 0 0 200px;
             height: 100%;
@@ -134,20 +117,17 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
         }
-
         #summary {
             font-size: 1em;
             line-height: 1.6;
             padding: 10px 0;
             white-space: normal;
         }
-
         #metadata {
             margin-top: 15px;
             font-size: 0.8em;
             color: #666;
         }
-
         footer {
             text-align: center;
             margin-top: 20px;
@@ -157,87 +137,119 @@
     </style>
     <script src="Config/config.js"></script>
 </head>
-
 <body>
-    <div class="container">
-        <h1>Peekaboo</h1>
-        <form id="searchForm">
-            <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
-            <button type="submit">EXECUTE</button>
-        </form>
-        <div id="suggestions"></div>
-        <div id="results"></div>
-        <div id="summary"></div>
-        <div id="metadata"></div>
-        <footer>
-            &copy; 2024 Peekaboo | Powered by Illuminati
-        </footer>
-    </div>
+<div class="container">
+    <h1>PeeKaboo?</h1>
+    <form id="searchForm">
+        <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
+        <button type="submit">EXECUTE</button>
+    </form>
+    <div id="suggestions"></div>
+    <div id="results"></div>
+    <div id="summary"></div>
+    <div id="metadata"></div>
+    <footer>
+        &copy; 2024 PeeKaboo | Powered by Illuminati
+    </footer>
+</div>
+<script>
+    document.getElementById('searchForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const query = document.getElementById('searchInput').value;
+        const results = document.getElementById('results');
+        const summary = document.getElementById('summary');
+        const metadata = document.getElementById('metadata');
+        results.innerHTML = 'Processing query...';
+        summary.textContent = '';
+        metadata.textContent = '';
 
-    <script>
-        async function fetchLatestData(query) {
-            const searchURL = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`;
-            try {
-                let response = await fetch(searchURL);
-                let data = await response.json();
-                return data.items || [];
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                return [];
-            }
-        }
+        function searchWikipedia(query) {
+            const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
 
-        async function fetchAIContext(query) {
-            const aiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-            const prompt = `Generate detailed context for this query: "${query}".`;
-            try {
-                let response = await fetch(`${aiURL}?key=${CONFIG.GEMINI_API_KEY}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.query && data.query.search && data.query.search.length > 0) {
+                        const result = data.query.search[0];
+                        return {
+                            title: result.title,
+                            snippet: result.snippet,
+                            pageUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(result.title)}`
+                        };
+                    } else {
+                        return {title: 'No results found', snippet: '', pageUrl: '#'};
+                    }
                 });
-                let data = await response.json();
-                return data.candidates[0].content.parts[0].text;
-            } catch (error) {
-                console.error('Error generating AI context:', error);
-                return '';
-            }
         }
 
-        document.getElementById('searchForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const query = document.getElementById('searchInput').value;
-            const results = document.getElementById('results');
-            const summary = document.getElementById('summary');
-            const metadata = document.getElementById('metadata');
-            results.innerHTML = 'Processing query...';
-            summary.textContent = '';
-            metadata.textContent = '';
+        function typeWriterEffect(content, element, speed = 5) {
+            const sentences = content.split('\n\n');
+            element.innerHTML = '';
 
-            const searchResults = await fetchLatestData(query);
-            const aiSummary = await fetchAIContext(query);
+            let i = 0;
+            let j = 0;
+            let currentSentence = '';
+            let isTyping = false;
 
-            results.innerHTML = searchResults.length > 0 ?
-                searchResults.map(item => `<img src="${item.link}" alt="Search Result Image">`).join('') :
-                'No images found.';
+            function type() {
+                if (i < sentences.length) {
+                    if (!isTyping) {
+                        currentSentence = sentences[i];
+                        isTyping = true;
+                        const p = document.createElement('p');
+                        element.appendChild(p);
+                    }
 
-            summary.innerHTML = `<h2>${query}</h2><p>${aiSummary}</p>`;
-            metadata.innerHTML = `<h2>Metadata</h2><p>Query: ${query}</p><p>API: Google AI & Custom Search</p>`;
-        });
+                    const p = element.lastElementChild;
+                    const char = currentSentence.charAt(j);
+                    p.innerHTML += char;
+                    j++;
 
-        const questions = [
-            "What is today's breaking news?",
-            "Latest technology trends",
-            "Software Testing Methods",
-            "Why is interstellar the best movie?"
-        ];
-        document.getElementById('suggestions').innerHTML = questions.map(q => `<span class="question">${q}</span>`).join('');
-        document.querySelectorAll('.question').forEach(q => {
-            q.addEventListener('click', function () {
-                document.getElementById('searchInput').value = this.textContent;
+                    if (j >= currentSentence.length) {
+                        j = 0;
+                        i++;
+                        isTyping = false;
+                        setTimeout(type, speed * 2);
+                    } else {
+                        requestAnimationFrame(type);
+                    }
+                }
+            }
+
+            type();
+        }
+
+        searchWikipedia(query)
+            .then(result => {
+                results.innerHTML = '';
+                summary.innerHTML = `<h2>${result.title}</h2>`;
+                const summaryContent = document.createElement('div');
+                summary.appendChild(summaryContent);
+                typeWriterEffect(result.snippet, summaryContent);
+
+                metadata.innerHTML = '<h2>Metadata</h2>';
+                metadata.innerHTML += `<p>Query: ${query}</p>`;
+                metadata.innerHTML += `<p>Source: <a href="${result.pageUrl}" target="_blank">${result.title}</a></p>`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                results.textContent = `An error occurred while processing your query: ${error.message}`;
             });
-        });
-    </script>
-</body>
+    });
 
+    const questions = [
+        "What is today's breaking news?",
+        "Trends in computer science technology",
+        "Software Testing Methods",
+        "Why is interstellar the best movie?"
+    ];
+    const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
+    document.getElementById('suggestions').innerHTML = suggestionsHtml;
+    document.querySelectorAll('.question').forEach(q => {
+        q.addEventListener('click', function () {
+            document.getElementById('searchInput').value = this.textContent;
+        });
+    });
+</script>
+</body>
 </html>
