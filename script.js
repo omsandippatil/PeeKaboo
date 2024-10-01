@@ -64,10 +64,8 @@ document.getElementById('searchForm').addEventListener('submit', function (e) {
     const query = document.getElementById('searchInput').value;
     const results = document.getElementById('results');
     const summary = document.getElementById('summary');
-    const metadata = document.getElementById('metadata');
     results.innerHTML = 'Processing query...';
     summary.textContent = '';
-    metadata.textContent = '';
 
     // Use Serper for search
     function searchWithSerper(query, numSources = 15) {
