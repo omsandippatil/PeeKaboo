@@ -3,76 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Scraping and AI Context</title>
+    <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Courier New', monospace; background-color: #000; color: #FF8C00; padding: 20px; min-height: 100vh; }
-        .container { background-color: rgba(0, 0, 0, 0.8); border: 1px solid #FF8C00; border-radius: 10px; padding: 20px; margin: 0 auto; }
-        h1 { text-align: center; color: #FF8C00; font-size: 2.5em; margin-bottom: 20px; }
-        #searchForm { display: flex; margin-bottom: 15px; }
-        input, button { background-color: #000; color: #FF8C00; border: 1px solid #FF8C00; font-size: 1em; padding: 10px; }
-        input { flex: 1; margin-right: 10px; border-radius: 5px 0 0 5px; }
-        button { border-radius: 0 5px 5px 0; cursor: pointer; }
-        button:hover { background-color: #FF8C00; color: #000; }
-        #results { background-color: #0A0A0A; padding: 15px; display: flex; flex-direction: column; }
-        footer { text-align: center; margin-top: 20px; font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="style.css">
     <script src="Config/config.js"></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
     <div class="container">
-        <h1>Web Scraper AI</h1>
+        <h1>PeeKaboo?</h1>
         <form id="searchForm">
-            <input type="text" id="searchInput" placeholder="Enter a query..." required>
-            <button type="submit">Search</button>
+            <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
+            <button type="submit">EXECUTE</button>
         </form>
+        <div id="suggestions"></div>
         <div id="results"></div>
-        <footer>&copy; 2024 Web Scraper AI</footer>
+        <div id="summary"></div>
+        <div id="metadata"></div>
+        <footer>
+            &copy; 2024 PeeKaboo | Powered by Illuminati
+        </footer>
     </div>
-
-    <script>
-        document.getElementById('searchForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const query = document.getElementById('searchInput').value;
-            const results = document.getElementById('results');
-            results.innerHTML = 'Fetching data...';
-
-            // Function to scrape the web and fetch data from multiple websites
-            async function scrapeAndSummarize(query) {
-                try {
-                    // Fetch data using web scraping
-                    const response = await fetch(`/scrape?query=${encodeURIComponent(query)}`);
-                    const data = await response.json();
-
-                    if (data && data.content) {
-                        // Use the AI API to generate a summary of the scraped data
-                        const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${CONFIG.GEMINI_API_KEY}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: `Summarize the following content: ${data.content}` }] }]
-                            })
-                        });
-
-                        const aiData = await aiResponse.json();
-                        if (aiData && aiData.candidates && aiData.candidates[0]) {
-                            results.innerHTML = `<h2>${query}</h2><p>${aiData.candidates[0].content.parts[0].text}</p>`;
-                        } else {
-                            results.innerHTML = 'No summary available.';
-                        }
-                    } else {
-                        results.innerHTML = 'No data found.';
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    results.textContent = `An error occurred: ${error.message}`;
-                }
-            }
-
-            // Execute the scraping and summarization
-            scrapeAndSummarize(query);
-        });
-    </script>
 </body>
 </html>
