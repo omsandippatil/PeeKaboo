@@ -22,8 +22,8 @@
             font-family: 'VT323', 'Courier New', monospace;
             background-color: #000;
             background-image: url('images/BG.png');
-            background-size: 800px 449px; /* Adjust the size to zoom in while repeating */
-            background-repeat: repeat; /* Keep the image repeating */
+            background-size: 800px 449px;
+            background-repeat: repeat;
             background-attachment: scroll;
             background-position: top left;
             color: #FF8C00;
@@ -33,8 +33,7 @@
             line-height: 1.6;
             min-height: 100vh;
             overflow: auto;
-             }
-
+        }
         /* Container styling */
         .container {
             position: relative;
@@ -154,176 +153,182 @@
             color: #666;
         }
     </style>
-    <script src="Config/config.js"></script>
 </head>
 <body>
-<div class="container">
-    <h1>PeeKaboo?</h1>
-    <form id="searchForm">
-        <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
-        <button type="submit">EXECUTE</button>
-    </form>
-    <div id="suggestions"></div>
-    <div id="results"></div>
-    <div id="summary"></div>
-    <div id="metadata"></div>
-    <footer>
-        &copy; 2024 PeeKaboo | Powered by Illuminati
-    </footer>
-</div>
-
-<script>
-    function typeWriterEffect(content, element, speed = 50) {
-        let i = 0;
-        function typeWriter() {
-            if (i < content.length) {
-                element.innerHTML += content.charAt(i);
-                i++;
-                setTimeout(typeWriter, speed);
-            }
+    <div class="container">
+        <h1>PeeKaboo?</h1>
+        <form id="searchForm">
+            <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
+            <button type="submit">EXECUTE</button>
+        </form>
+        <div id="suggestions"></div>
+        <div id="results"></div>
+        <div id="summary"></div>
+        <div id="metadata"></div>
+        <footer>
+            &copy; 2024 PeeKaboo | Powered by Illuminati
+        </footer>
+    </div>
+    <script>
+        // Function to load configuration
+        function loadConfig() {
+            return {
+                GOOGLE_API_KEY: 'YOUR_GOOGLE_API_KEY',
+                GOOGLE_SEARCH_ENGINE_ID: 'YOUR_GOOGLE_SEARCH_ENGINE_ID',
+                GEMINI_API_KEY: 'YOUR_GEMINI_API_KEY'
+            };
         }
-        typeWriter();
-    }
 
-    document.getElementById('searchForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const query = document.getElementById('searchInput').value;
-        const results = document.getElementById('results');
-        const summary = document.getElementById('summary');
-        const metadata = document.getElementById('metadata');
+        const CONFIG = loadConfig();
 
-        // Reset content before starting a new query
-        results.innerHTML = 'Processing query...';
-        summary.textContent = '';
-        metadata.textContent = '';
+        function typeWriterEffect(content, element, speed = 50) {
+            let i = 0;
+            function typeWriter() {
+                if (i < content.length) {
+                    element.innerHTML += content.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, speed);
+                }
+            }
+            typeWriter();
+        }
 
-        // Function to search for images using Google Custom Search API
-        function searchImagesWithGoogle(query, numImages = 4) {
-            const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image`;
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value;
+            const results = document.getElementById('results');
+            const summary = document.getElementById('summary');
+            const metadata = document.getElementById('metadata');
 
-            return fetch(url)
+            // Reset content before starting a new query
+            results.innerHTML = 'Processing query...';
+            summary.textContent = '';
+            metadata.textContent = '';
+
+            // Function to search for images using Google Custom Search API
+            function searchImagesWithGoogle(query, numImages = 4) {
+                const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image`;
+                return fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to fetch images');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.items && Array.isArray(data.items)) {
+                            return data.items.map(item => ({
+                                url: item.link
+                            }));
+                        }
+                        return [];
+                    })
+                    .catch(error => {
+                        console.error('Error fetching images:', error);
+                        return []; // Return an empty array if an error occurs
+                    });
+            }
+
+            // Function to generate search results using Google Gemini API
+            function generateSearchResultWithGemini(query) {
+                const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+                const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
+                    As a search engine:
+                    1. Start with a brief, direct answer to the query if applicable.
+                    2. Provide detailed, factual information related to the query.
+                    3. Include relevant statistics, dates, or figures if appropriate.
+                    4. Mention different perspectives or viewpoints on the topic if relevant.
+                    5. If the query is about a current event, provide the most up-to-date information available.
+                    6. If the query is unclear, interpret it in the most likely way and respond accordingly.
+                    7. End with a brief conclusion or summary of the key points.
+                    Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
+
+                return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: {
+                            contents: [{
+                                parts: [{
+                                    text: prompt
+                                }]
+                            }]
+                        }
+                    })
+                })
                 .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch images');
+                    if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
                     return response.json();
                 })
                 .then(data => {
-                    if (data.items && Array.isArray(data.items)) {
-                        return data.items.map(item => ({
-                            url: item.link
-                        }));
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                        return data.candidates[0].content.parts[0].text;
+                    } else {
+                        throw new Error('No search result generated from Gemini');
                     }
-                    return [];
                 })
                 .catch(error => {
-                    console.error('Error fetching images:', error);
-                    return []; // Return an empty array if an error occurs
+                    console.error('Error generating search result:', error);
+                    return `Error generating search result: ${error.message}`;
                 });
-        }
+            }
 
-        // Function to generate search results using Google Gemini API
-        function generateSearchResultWithGemini(query) {
-            const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-            const prompt = `You are an advanced search engine called PeeKaboo. Your task is to provide a comprehensive and informative response to the following search query: "${query}". 
+            // Execute both functions in parallel
+            Promise.all([searchImagesWithGoogle(query), generateSearchResultWithGemini(query)])
+                .then(([images, searchResult]) => {
+                    // Clear the loading message
+                    results.innerHTML = '';
 
-            As a search engine:
-            1. Start with a brief, direct answer to the query if applicable.
-            2. Provide detailed, factual information related to the query.
-            3. Include relevant statistics, dates, or figures if appropriate.
-            4. Mention different perspectives or viewpoints on the topic if relevant.
-            5. If the query is about a current event, provide the most up-to-date information available.
-            6. If the query is unclear, interpret it in the most likely way and respond accordingly.
-            7. End with a brief conclusion or summary of the key points.
-
-            Your response should be informative, engaging, and approximately 300-400 words long. Format the response in a way that's easy to read, using paragraphs and bullet points where appropriate.`;
-
-            return fetch(`${url}?key=${CONFIG.GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    prompt: {
-                        contents: [{
-                            parts: [{
-                                text: prompt
-                            }]
-                        }]
+                    // Display images, if found
+                    if (images && images.length > 0) {
+                        images.forEach(image => {
+                            const img = document.createElement('img');
+                            img.src = image.url;
+                            img.alt = 'Image';
+                            img.style.width = 'auto';
+                            img.style.maxHeight = '200px';
+                            img.style.flex = '1 1 auto';
+                            results.appendChild(img);
+                        });
+                    } else {
+                        results.textContent = 'No images found.';
                     }
+
+                    // Display summary with typewriter effect
+                    summary.innerHTML = `<h2>${query}</h2>`;
+                    const summaryContent = document.createElement('div');
+                    summary.appendChild(summaryContent);
+                    typeWriterEffect(searchResult || 'No search result available.', summaryContent);
+
+                    // Display metadata
+                    metadata.innerHTML = '<h2>Metadata</h2>';
+                    metadata.innerHTML += `<p>Query: ${query}</p>`;
+                    metadata.innerHTML += `<p>API: Google AI Studio (Gemini) & Google Custom Search</p>`;
                 })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to fetch summary from Gemini API');
-                return response.json();
-            })
-            .then(data => {
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    return data.candidates[0].content.parts[0].text;
-                } else {
-                    throw new Error('No search result generated from Gemini');
-                }
-            })
-            .catch(error => {
-                console.error('Error generating search result:', error);
-                return `Error generating search result: ${error.message}`;
-            });
-        }
-
-        // Execute both functions in parallel
-        Promise.all([searchImagesWithGoogle(query), generateSearchResultWithGemini(query)])
-            .then(([images, searchResult]) => {
-                // Clear the loading message
-                results.innerHTML = '';
-
-                // Display images, if found
-                if (images && images.length > 0) {
-                    images.forEach(image => {
-                        const img = document.createElement('img');
-                        img.src = image.url;
-                        img.alt = 'Image';
-                        img.style.width = 'auto';
-                        img.style.maxHeight = '200px';
-                        img.style.flex = '1 1 auto';
-                        results.appendChild(img);
-                    });
-                } else {
-                    results.textContent = 'No images found.';
-                }
-
-                // Display summary with typewriter effect
-                summary.innerHTML = `<h2>${query}</h2>`;
-                const summaryContent = document.createElement('div');
-                summary.appendChild(summaryContent);
-                typeWriterEffect(searchResult || 'No search result available.', summaryContent);
-
-                // Display metadata
-                metadata.innerHTML = '<h2>Metadata</h2>';
-                metadata.innerHTML += `<p>Query: ${query}</p>`;
-                metadata.innerHTML += `<p>API: Google AI Studio (Gemini) & Google Custom Search</p>`;
-            })
-            .catch(error => {
-                // Handle and display any error that occurs during the promises
-                console.error('Error:', error);
-                results.textContent = `An error occurred while processing your query: ${error.message}`;
-                summary.textContent = `Unable to generate search results at this time. ${error.message}`;
-            });
-    });
-
-    // Suggestions for quick queries
-    const questions = [
-        "What is today's breaking news?",
-        "Trends in computer science technology",
-        "Software Testing Methods",
-        "Why is interstellar the best movie?"
-    ];
-    const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
-    document.getElementById('suggestions').innerHTML = suggestionsHtml;
-
-    // Add click events for each suggestion
-    document.querySelectorAll('.question').forEach(q => {
-        q.addEventListener('click', function() {
-            document.getElementById('searchInput').value = this.textContent;
+                .catch(error => {
+                    // Handle and display any error that occurs during the promises
+                    console.error('Error:', error);
+                    results.textContent = `An error occurred while processing your query: ${error.message}`;
+                    summary.textContent = `Unable to generate search results at this time. ${error.message}`;
+                });
         });
-    });
-</script>
+
+        // Suggestions for quick queries
+        const questions = [
+            "What is today's breaking news?",
+            "Trends in computer science technology",
+            "Software Testing Methods",
+            "Why is interstellar the best movie?"
+        ];
+        const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
+        document.getElementById('suggestions').innerHTML = suggestionsHtml;
+
+        // Add click events for each suggestion
+        document.querySelectorAll('.question').forEach(q => {
+            q.addEventListener('click', function() {
+                document.getElementById('searchInput').value = this.textContent;
+            });
+        });
+    </script>
 </body>
 </html>
