@@ -6,6 +6,8 @@
     <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
+    <!-- Import config.js -->
+    <script src="Config/config.js" defer></script>
     <script defer src="script.js"></script>
 </head>
 <body>
@@ -89,14 +91,14 @@
                     .catch(() => false);
             }
 
-            // Function to search with Serper
+            // Function to search with Serper using the API key from Config
             async function searchWithSerper(query) {
                 try {
                     const response = await fetch(`https://api.serper.dev/search`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${process.env.SERPER_API_KEY}`
+                            'Authorization': `Bearer ${CONFIG.SERPER_API_KEY}`
                         },
                         body: JSON.stringify({ q: query, num: 10, tbs: 'qdr:d' })
                     });
@@ -113,10 +115,10 @@
                 }
             }
 
-            // Function to search for images using Google API
+            // Function to search for images using Google API from Config
             async function searchImagesWithGoogle(query) {
                 try {
-                    const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_API_KEY}&cx=${process.env.GOOGLE_SEARCH_ENGINE_ID}&q=${query}&searchType=image&num=4`);
+                    const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${query}&searchType=image&num=4`);
 
                     if (!response.ok) {
                         throw new Error(`Google Image Search error: ${response.statusText}`);
@@ -130,14 +132,14 @@
                 }
             }
 
-            // Function to summarize results using Groq
+            // Function to summarize results using Groq API from Config
             async function getSummary(context) {
                 try {
                     const response = await fetch('https://api.groq.dev/summarize', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+                            'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
                         },
                         body: JSON.stringify({
                             model: 'llama2-70b',
