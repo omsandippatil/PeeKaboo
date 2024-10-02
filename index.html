@@ -5,10 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
     <script src="Config/config.js"></script>
-    <link rel="stylesheet" href="style.css"> 
-</head>
+    <style>
+        .images-container {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
 
+        .image-item {
+            flex: 0 0 auto;
+            margin-right: 10px;
+        }
+
+        .image-item img {
+            max-height: 200px;
+            width: auto;
+        }
+    </style>
+</head>
 <body>
     <div class="container">
         <h1>PeeKaboo?</h1>
@@ -26,8 +42,8 @@
             </div>
             <button type="submit">EXECUTE</button>
         </form>
+        <div class="images-container" id="imagesContainer"></div> <!-- Image results will appear here -->
         <div id="results"></div>
-        <div class="images-container" id="imagesContainer"></div>
         <div id="summary"></div>
         <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
     </div>
@@ -77,7 +93,7 @@
 
                             const searchResults = await searchWithTavily(query);
                             let imageResults = [];
-                            
+
                             if (showImagesCheckbox.checked) {
                                 imageResults = await searchImagesWithGoogle(query);
                                 displayImages(imageResults);
@@ -121,7 +137,6 @@
                         });
                     }
 
-                    // Your existing utility functions remain the same
                     async function checkInternetConnection() {
                         try {
                             await fetch('https://www.google.com', { mode: 'no-cors', cache: 'no-store' });
@@ -176,12 +191,12 @@
                     }
 
                     function setupGetAnswerPrompt(snippets, images) {
-                        const startingContext = `Answer all this  1. A detailed, paragraphed, comprehensive answer to the question. It must be accurate, high-quality, and expertly written in a positive, interesting, and engaging manner. The answer should be informative and in the same language as the user question. Aim for at least 300 words in your response.  
-                        2. After your main answer, provide a section titled "Image Descriptions" where you describe how each of the provided images relates to the topic. Use the format: "Image X: [Brief description and relevance to the topic]"`;
+                        const startingContext = `Answer all this  1. A detailed, paragraphed, comprehensive answer to the question. It must be accurate, high-quality, and expertly written in a positive, interesting, and engaging manner. The answer should be informative and in the same language as the user question. Aim for at least 300 words in your response.
+                          2. After your main answer, provide a section titled "Image Descriptions" where you describe how each of the provided images relates to the topic. Use the format: "Image X: [Brief description and relevance to the topic]"`;
 
                         const snippetsText = snippets.map((s, i) => `[citation:${i + 1}] ${s.snippet}`).join('\n\n');
                         const imageContext = "\nHere are descriptions of relevant images:\n" + images.map((_, index) => `Image ${index + 1}: [Brief description and relevance to the topic]`).join('\n');
-                        
+
                         return `${startingContext}\n\n${snippetsText}\n\n${imageContext}\n\nUse the provided information to create a comprehensive and engaging response.`;
                     }
 
