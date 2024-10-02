@@ -3,39 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeeKaboo?</title>
+    <title>PeeKaboo News Explorer</title>
     <link rel="stylesheet" href="style.css">
     <script src="Config/config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>PeeKaboo?</h1>
+        <header>
+            <h1><i class="fas fa-newspaper"></i> PeeKaboo News</h1>
+            <p class="subtitle">Explore the latest news with AI-powered insights</p>
+        </header>
+
         <div class="search-wrapper">
             <form id="searchForm">
                 <div class="search-container">
-                    <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
+                    <div class="input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            name="q" 
+                            placeholder="Search for news..." 
+                            required
+                            autocomplete="off"
+                        >
+                    </div>
                     <div class="control-group">
                         <label class="checkbox-container">
                             <input type="checkbox" id="showImagesCheckbox" checked>
-                            <span>Show Images</span>
+                            <span><i class="fas fa-images"></i> Show Images</span>
                         </label>
-                        <button type="submit">Search</button>
+                        <button type="submit">
+                            <i class="fas fa-bolt"></i> Search
+                        </button>
                     </div>
                 </div>
-                <div class="suggestions">
-                    <span class="question">What is today's breaking news?</span>
-                    <span class="question">Trends in computer science technology</span>
-                    <span class="question">Software Testing Methods</span>
-                    <span class="question">Why is interstellar the best movie?</span>
+                
+                <div class="topics-container">
+                    <h3><i class="fas fa-lightbulb"></i> Trending Topics</h3>
+                    <div class="suggestions">
+                        <span class="question"><i class="fas fa-globe"></i> Breaking World News</span>
+                        <span class="question"><i class="fas fa-microchip"></i> Tech Innovation Updates</span>
+                        <span class="question"><i class="fas fa-chart-line"></i> Business Headlines</span>
+                        <span class="question"><i class="fas fa-film"></i> Entertainment News</span>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <div class="images-container" id="imagesContainer"></div>
-        <div id="results" class="results-container"></div>
-        <div id="summary" class="summary-container"></div>
+        <div id="content-wrapper">
+            <div id="loading" class="loading-container hidden">
+                <div class="loader"></div>
+                <p>Searching news archives...</p>
+            </div>
+
+            <div id="imagesContainer" class="images-container"></div>
+            
+            <div class="main-content">
+                <div id="results" class="results-container"></div>
+                <div id="summary" class="summary-container"></div>
+            </div>
+        </div>
         
-        <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
+        <footer>
+            <p>&copy; 2024 PeeKaboo News Explorer | <i class="fas fa-robot"></i> Powered by AI</p>
+        </footer>
     </div>
 
     <script>
@@ -58,7 +91,9 @@
                             api_key: CONFIG.TAVILY_API_KEY,
                             query: query,
                             max_results: 10,
-                            search_depth: "news"
+                            search_depth: "advanced",
+                            topic: "news",
+                            include_images: false
                         })
                     });
                     
@@ -69,7 +104,7 @@
 
                 async searchImages(query) {
                     const response = await fetch(
-                        `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${query}&searchType=image&num=4`
+                        `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${query}&searchType=image&num=6`
                     );
                     
                     if (!response.ok) throw new Error(`Image search failed: ${response.status}`);
@@ -101,13 +136,21 @@
             function setupUI() {
                 const searchForm = document.getElementById("searchForm");
                 const searchInput = document.getElementById("searchInput");
-                const showImagesCheckbox = document.getElementById("showImagesCheckbox");
+                const loading = document.getElementById("loading");
 
                 document.querySelectorAll('.question').forEach(q => {
-                    q.addEventListener('click', () => searchInput.value = q.textContent);
+                    q.addEventListener('click', () => {
+                        searchInput.value = q.textContent;
+                        searchForm.dispatchEvent(new Event('submit'));
+                    });
                 });
 
-                searchForm.addEventListener("submit", handleSearch);
+                searchForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    loading.classList.remove('hidden');
+                    await handleSearch(e);
+                    loading.classList.add('hidden');
+                });
             }
 
             async function handleSearch(e) {
@@ -118,56 +161,89 @@
                 const showImages = document.getElementById("showImagesCheckbox").checked;
 
                 try {
-                    resultsDiv.innerHTML = '<p class="loading">Processing query...</p>';
+                    resultsDiv.innerHTML = '';
                     imagesContainer.innerHTML = '';
                     summaryDiv.innerHTML = '';
 
                     const isOnline = await API.checkConnection();
                     if (!isOnline) throw new Error('No internet connection');
 
-                    const query = searchInput.value + " News";
+                    const query = searchInput.value;
                     const [searchResults, imageResults] = await Promise.all([
                         API.searchTavily(query),
-                        showImages ? API.searchImages(query) : []
+                        showImages ? API.searchImages(query + " news") : []
                     ]);
 
                     if (showImages && imageResults.length > 0) {
-                        imagesContainer.innerHTML = '<h3>Image Results:</h3><div class="images-scroll">' + 
-                            imageResults.map(image => `
-                                <div class="image-item">
-                                    <img src="${image.link}" alt="News Image" onerror="this.src='placeholder.jpg'">
-                                </div>
-                            `).join('') + '</div>';
+                        imagesContainer.innerHTML = `
+                            <div class="images-header">
+                                <h3><i class="fas fa-images"></i> Visual Coverage</h3>
+                            </div>
+                            <div class="images-scroll">
+                                ${imageResults.map(image => `
+                                    <div class="image-item">
+                                        <img src="${image.link}" alt="News Image" onerror="this.src='placeholder.jpg'">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
                     }
 
                     displayResults(searchResults);
 
                     const context = buildGroqContext(searchResults, imageResults);
                     const summary = await API.getGroqSummary(query, context);
-                    summaryDiv.innerHTML = `<h3>Summary:</h3><p>${summary.choices[0].message.content}</p>`;
+                    summaryDiv.innerHTML = `
+                        <div class="summary-header">
+                            <h3><i class="fas fa-brain"></i> AI Analysis</h3>
+                        </div>
+                        <div class="summary-content">
+                            ${summary.choices[0].message.content}
+                        </div>
+                    `;
                     
                 } catch (error) {
-                    resultsDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Error: ${error.message}
+                        </div>
+                    `;
                 }
             }
 
             function displayResults(results) {
                 const resultsDiv = document.getElementById("results");
-                resultsDiv.innerHTML = '<h3>News Results:</h3>' + results.map(result => `
-                    <div class="news-result">
-                        <h4><a href="${result.url}" target="_blank">${result.title}</a></h4>
-                        <p>${result.snippet || result.content}</p>
+                resultsDiv.innerHTML = `
+                    <div class="results-header">
+                        <h3><i class="fas fa-newspaper"></i> Latest News</h3>
                     </div>
-                `).join('');
+                    ${results.map(result => `
+                        <div class="news-result">
+                            <h4>
+                                <a href="${result.url}" target="_blank">
+                                    ${result.title}
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </h4>
+                            <p>${result.snippet || result.content}</p>
+                        </div>
+                    `).join('')}
+                `;
             }
 
             function buildGroqContext(snippets, images) {
-                const baseContext = `Provide: 
-                1. A detailed, comprehensive answer (300+ words) that is accurate, engaging, and informative.
-                2. Image Descriptions section describing how each image relates to the topic.`;
+                const baseContext = `You are an expert news analyst. Based on the provided news snippets, create:
+                1. A comprehensive analysis (300+ words) that:
+                   - Summarizes the key points
+                   - Provides context and background
+                   - Identifies trends and patterns
+                   - Offers balanced perspective
+                2. Brief descriptions of how the provided images relate to the story.
+                Use clear, engaging language suitable for a news context.`;
                 
                 const snippetsText = snippets.map((s, i) => `[${i + 1}] ${s.snippet}`).join('\n\n');
-                const imageContext = images.map((_, i) => `Image ${i + 1}: [Description pending]`).join('\n');
+                const imageContext = images.map((_, i) => `Image ${i + 1}: [Visual content description]`).join('\n');
                 
                 return `${baseContext}\n\n${snippetsText}\n\n${imageContext}`;
             }
