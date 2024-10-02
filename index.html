@@ -201,48 +201,76 @@
                 }
             }
 
-            function getSnippetsForPrompt(snippets) {
-                return snippets.map((s, i) => `[citation:${i + 1}] ${s.snippet}`).join('\n\n');
-            }
+function getSnippetsForPrompt(snippets) {
+    return snippets.map((s, i) => `[citation:${i + 1}] ${s.snippet}`).join('\n\n');
+}
 
-            function setupGetAnswerPrompt(snippets, images) {
-                const startingContext = `Answer all this  1. A detailed, paragraphed, comprehensive answer to the question. It must be accurate, high-quality, and expertly written in a positive, interesting, and engaging manner. The answer should be informative and in the same language as the user question. Aim for at least 300 words in your response.  
-                2. After your main answer, provide a section titled "Image Descriptions" where you describe how each of the provided images relates to the topic. Use the format: "Image X: [Brief description and relevance to the topic]"  
-                For all parts of your response, you will be provided with a set of citations to the question. Each will start with a reference number like [citation:x], where x is a number. Always use the related citations and cite the citation at the end of each sentence in the format [citation:x]. If a sentence comes from multiple citations, please list all applicable citations, like [citation:2][citation:3].  Here are the provided citations:`;
+function setupGetAnswerPrompt(snippets, images) {
+    const startingContext = `Answer all this  1. A detailed, paragraphed, comprehensive answer to the question. It must be accurate, high-quality, and expertly written in a positive, interesting, and engaging manner. The answer should be informative and in the same language as the user question. Aim for at least 300 words in your response.  
+2. After your main answer, provide a section titled "Image Descriptions" where you describe how each of the provided images relates to the topic. Use the format: "Image X: [Brief description and relevance to the topic]"  
+For all parts of your response, you will be provided with a set of citations to the question. Each will start with a reference number like [citation:x], where x is a number. Always use the related citations and cite the citation at the end of each sentence in the format [citation:x]. If a sentence comes from multiple citations, please list all applicable citations, like [citation:2][citation:3].  
+Here are the provided citations:`;
 
-                const imageContext = "\nHere are descriptions of relevant images:\n" + images.map((_, index) => `Image ${index + 1}: [Brief description and relevance to the topic]`).join('\n');
-                const finalContext = "Use the provided information to create a comprehensive and engaging response.";
+    const imageContext = "\nHere are descriptions of relevant images:\n" +
+        images.map((_, index) => `Image ${index + 1}: [Brief description and relevance to the topic]`).join('\n');
 
-                return `${startingContext}\n\n${getSnippetsForPrompt(snippets)}\n\n${imageContext}\n\n${finalContext}`;
-            }
+    const finalContext = "Use the provided information to create a comprehensive and engaging response.";
+    return `${startingContext}\n\n${getSnippetsForPrompt(snippets)}\n\n${imageContext}\n\n${finalContext}`;
+}
 
-            function requestGroq(query, context, maxTokens = 3000, model = "mixtral-8x7b-32768", temperature = 0.7) {
-                const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+function requestTavily(query, searchDepth = "advanced", topic = "news", maxResults = 5, maxTokens = 4000, temperature = 0.7) {
+    const TAVILY_API_ENDPOINT = "https://api.tavily.com/search";
+    const requestBody = {
+        query: query,
+        options: {
+            searchDepth: searchDepth,
+            topic: topic,
+            maxResults: maxResults,
+            includeAnswer: true,
+            includeImages: true,
+            includeImageDescriptions: true
+        },
+    };
 
-                const requestBody = {
-                    model: model,
-                    messages: [
-                        { role: "system", content: context },
-                        { role: "user", content: query }
-                    ],
-                    temperature: temperature,
-                    max_tokens: maxTokens,
-                };
-
-                return fetch(GROQ_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
-                    },
-                    body: JSON.stringify(requestBody),
-                })
-                .then(response => response.json());
-            }
+    return fetch(TAVILY_API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${CONFIG.TAVILY_API_KEY}`,
+        },
+        body: JSON.stringify(requestBody),
+    })
+        .then(response => response.json())
+        .then(data => {
+            const context = setupGetAnswerPrompt(data.results, data.images);
+            return requestGroq(query, context, maxTokens);
         });
-    } catch (error) {
-        logError("Initialization error", error);
-    }
+}
+
+function requestGroq(query, context, maxTokens = 3000, model = "mixtral-8x7b-32768", temperature = 0.7) {
+    const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+
+    const requestBody = {
+        model: model,
+        messages: [
+            { role: "system", content: context },
+            { role: "user", content: query }
+        ],
+        temperature: temperature,
+        max_tokens: maxTokens,
+    };
+
+    return fetch(GROQ_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
+        },
+        body: JSON.stringify(requestBody),
+    })
+        .then(response => response.json());
+}
+
 })();
     </script>
 </body>
