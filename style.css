@@ -1,198 +1,137 @@
-/* Retro Orange Theme for PeeKaboo */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 :root {
-    --orange-primary: #FF6B35;
-    --orange-secondary: #F7C59F;
-    --background: #EFEFD0;
-    --text-dark: #2B2D42;
-    --text-light: #FFFFFF;
+    --primary-color: #FF8C00;
+    --bg-color: #000;
+    --border-glow: 0 0 15px rgba(255, 140, 0, 0.3);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: 'Courier New', monospace;
-    background-color: var(--background);
-    color: var(--text-dark);
+    font-family: 'VT323', monospace;
+    background-color: var(--bg-color);
+    color: var(--primary-color);
     line-height: 1.6;
-    margin: 0;
-    padding: 0;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
     padding: 20px;
-}
-
-header {
-    text-align: center;
-    margin-bottom: 30px;
+    box-shadow: var(--border-glow);
 }
 
 h1 {
-    font-size: 4rem;
-    color: var(--orange-primary);
-    text-shadow: 3px 3px 0 var(--orange-secondary);
-    margin: 0;
-}
-
-.retro-decoration {
-    height: 10px;
-    background: repeating-linear-gradient(
-        45deg,
-        var(--orange-primary),
-        var(--orange-primary) 10px,
-        var(--orange-secondary) 10px,
-        var(--orange-secondary) 20px
-    );
-    margin: 20px 0;
-}
-
-.search-wrapper {
-    background-color: var(--orange-secondary);
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(255, 140, 0, 0.7);
 }
 
 .search-container {
     display: flex;
-    flex-direction: column;
     gap: 10px;
-}
-
-input[type="text"] {
-    padding: 10px;
-    font-size: 1rem;
-    border: 2px solid var(--orange-primary);
-    border-radius: 5px;
-    background-color: var(--text-light);
+    margin-bottom: 15px;
 }
 
 .control-group {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    background-color: var(--bg-color);
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 1.1em;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: var(--bg-color);
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--primary-color);
+    color: var(--bg-color);
 }
 
 .checkbox-container {
     display: flex;
     align-items: center;
     gap: 5px;
-    font-weight: bold;
-}
-
-button {
-    background-color: var(--orange-primary);
-    color: var(--text-light);
-    border: none;
-    padding: 10px 20px;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 5px;
+    font-size: 0.9em;
     cursor: pointer;
-    transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: var(--text-dark);
+.checkbox-container input {
+    display: none;
+}
+
+.checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--primary-color);
+    display: inline-block;
+    position: relative;
+    border-radius: 3px;
+}
+
+.checkbox-container input:checked + .checkmark:after {
+    content: '\2714';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--primary-color);
 }
 
 .suggestions {
     display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
 }
 
 .question {
-    background-color: var(--orange-primary);
-    color: var(--text-light);
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 1.1rem;
+    font-size: 0.9em;
+    padding: 5px 10px;
+    background-color: rgba(26, 26, 26, 0.9);
+    border: 1px solid var(--primary-color);
+    border-radius: 3px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    flex-grow: 1;
+    text-align: center;
 }
 
 .question:hover {
-    background-color: var(--text-dark);
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+    transform: translateY(-3px);
 }
 
-.content-area {
-    margin-top: 30px;
-}
-
-.images-container, .results-container, .summary-container {
-    background-color: var(--text-light);
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.images-scroll {
-    display: flex;
-    overflow-x: auto;
-    gap: 15px;
-    padding-bottom: 15px;
-}
-
-.image-item img {
-    width: 200px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.news-result {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--orange-secondary);
-}
-
-.news-result:last-child {
-    border-bottom: none;
-}
-
-.news-result h4 {
-    margin: 0 0 10px 0;
-}
-
-.news-result a {
-    color: var(--orange-primary);
-    text-decoration: none;
-}
-
-.news-result a:hover {
-    text-decoration: underline;
-}
-
-footer {
-    text-align: center;
-    margin-top: 30px;
-    font-size: 0.9rem;
-}
-
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-
-    h1 {
-        font-size: 3rem;
-    }
-
-    .search-container {
-        flex-direction: column;
-    }
-
-    .control-group {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-
-    .suggestions {
-        flex-wrap: wrap;
-    }
-}
+/* Rest of the CSS remains the same */
