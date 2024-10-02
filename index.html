@@ -1,16 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="style.css">
-    <script src="Config/config.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #searchForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .question {
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .question:hover {
+            background: #e0e0e0;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .custom-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ff9800;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .custom-checkbox:checked {
+            background-color: #ff9800;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        button {
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #results, #summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .news-result {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .news-result h4 {
+            margin-bottom: 10px;
+        }
+
+        .news-result a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .images-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .image-item {
+            position: relative;
+            padding-top: 75%; /* 4:3 Aspect Ratio */
+            overflow: hidden;
+            border-radius: 5px;
+        }
+
+        .image-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
     </style>
+    <script src="Config/config.js"></script>
 </head>
 
 <body>
@@ -18,261 +175,202 @@
         <h1>PeeKaboo?</h1>
         <form id="searchForm">
             <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
-            <div id="suggestions" class="suggestions"></div>
-            <label>
+            <div id="suggestions" class="suggestions">
+                <span class="question">What is today's breaking news?</span>
+                <span class="question">Trends in computer science technology</span>
+                <span class="question">Software Testing Methods</span>
+                <span class="question">Why is interstellar the best movie?</span>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="showImagesCheckbox" class="custom-checkbox" checked>
                 <span>Show Images</span>
-            </label>
+            </div>
             <button type="submit">EXECUTE</button>
         </form>
         <div id="results"></div>
+        <div class="images-container" id="imagesContainer"></div>
         <div id="summary"></div>
         <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
     </div>
 
     <script>
         (function () {
-    console.log("Script started");
+            console.log("Script started");
 
-    function logError(message, error) {
-        console.error(message, error);
-        document.getElementById('results').innerHTML += `<p style="color: red;">${message}: ${error.message}</p>`;
-    }
-
-    try {
-        if (!CONFIG) {
-            throw new Error("CONFIG is not defined. Make sure config.js is loaded correctly.");
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            console.log("DOMContentLoaded event fired");
-
-            const searchInput = document.getElementById("searchInput");
-            const suggestionsDiv = document.getElementById("suggestions");
-            const searchForm = document.getElementById("searchForm");
-            const resultsDiv = document.getElementById("results");
-            const summaryDiv = document.getElementById("summary");
-            const showImagesCheckbox = document.getElementById("showImagesCheckbox");
-
-            const questions = [
-                "What is today's breaking news?",
-                "Trends in computer science technology",
-                "Software Testing Methods",
-                "Why is interstellar the best movie?"
-            ];
-            const suggestionsHtml = questions.map(q => `<span class="question">${q}</span>`).join('');
-            suggestionsDiv.innerHTML = suggestionsHtml;
-
-            document.querySelectorAll('.question').forEach(q => {
-                q.addEventListener('click', function () {
-                    searchInput.value = this.textContent;
-                });
-            });
-
-            searchForm.addEventListener("submit", async function (e) {
-                e.preventDefault();
-                resultsDiv.innerHTML = 'Processing query...';
-                summaryDiv.innerHTML = '';
-
-                try {
-                    const query = searchInput.value + " News"; // Append "News" to the query
-                    const isOnline = await checkInternetConnection();
-                    if (!isOnline) {
-                        throw new Error('No internet connection');
-                    }
-
-                    console.log("Searching for news with Tavily...");
-                    const searchResults = await searchWithTavily(query);
-                    console.log("Tavily search results:", searchResults);
-
-                    let imageResults = [];
-                    if (showImagesCheckbox.checked) {
-                        console.log("Searching for images...");
-                        imageResults = await searchImagesWithGoogle(query);
-                        console.log("Image search results:", imageResults);
-                    }
-
-                    displayResults(searchResults, imageResults, resultsDiv);
-
-                    console.log("Summarizing with Groq...");
-                    const snippets = searchResults.map(result => ({
-                        snippet: result.snippet,
-                    }));
-                    const promptContext = setupGetAnswerPrompt(snippets, imageResults);
-                    const groqResponse = await requestGroq(query, promptContext);
-                    const groqText = groqResponse.choices[0].message.content;
-                    summaryDiv.innerHTML = `<h3>Summary:</h3><p>${groqText}</p>`;
-
-                } catch (error) {
-                    logError("Search error", error);
-                }
-            });
-
-            async function checkInternetConnection() {
-                try {
-                    await fetch('https://www.google.com', { mode: 'no-cors', cache: 'no-store' });
-                    return true;
-                } catch {
-                    return false;
-                }
+            function logError(message, error) {
+                console.error(message, error);
+                document.getElementById('results').innerHTML += `<p style="color: red;">${message}: ${error.message}</p>`;
             }
 
-            async function searchWithTavily(query, searchDepth = "advanced", topic = "news") {
-                try {
-                    const response = await fetch('https://api.tavily.com/search', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            api_key: CONFIG.TAVILY_API_KEY,
-                            query: query,
-                            max_results: 10,
-                            search_depth: "news" // Setting the search topic to "news"
-                        })
+            try {
+                if (!CONFIG) {
+                    throw new Error("CONFIG is not defined. Make sure config.js is loaded correctly.");
+                }
+
+                document.addEventListener("DOMContentLoaded", function () {
+                    console.log("DOMContentLoaded event fired");
+
+                    const searchInput = document.getElementById("searchInput");
+                    const searchForm = document.getElementById("searchForm");
+                    const resultsDiv = document.getElementById("results");
+                    const imagesContainer = document.getElementById("imagesContainer");
+                    const summaryDiv = document.getElementById("summary");
+                    const showImagesCheckbox = document.getElementById("showImagesCheckbox");
+
+                    document.querySelectorAll('.question').forEach(q => {
+                        q.addEventListener('click', function () {
+                            searchInput.value = this.textContent;
+                        });
                     });
 
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Tavily AI request failed: ${response.status} ${response.statusText}. ${errorText}`);
-                    }
+                    searchForm.addEventListener("submit", async function (e) {
+                        e.preventDefault();
+                        resultsDiv.innerHTML = 'Processing query...';
+                        imagesContainer.innerHTML = '';
+                        summaryDiv.innerHTML = '';
 
-                    const data = await response.json();
-                    if (!data.results || data.results.length === 0) {
-                        throw new Error('No results returned from Tavily AI');
-                    }
-                    return data.results;
-                } catch (error) {
-                    console.error('Tavily AI search error:', error);
-                    throw error;
-                }
-            }
+                        try {
+                            const query = searchInput.value + " News";
+                            const isOnline = await checkInternetConnection();
+                            if (!isOnline) {
+                                throw new Error('No internet connection');
+                            }
 
-            async function searchImagesWithGoogle(query) {
-                try {
-                    const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${query}&searchType=image&num=4`);
+                            const searchResults = await searchWithTavily(query);
+                            let imageResults = [];
+                            
+                            if (showImagesCheckbox.checked) {
+                                imageResults = await searchImagesWithGoogle(query);
+                                displayImages(imageResults);
+                            }
 
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Google Image Search error: ${response.status} ${response.statusText}. ${errorText}`);
-                    }
+                            displayResults(searchResults);
 
-                    const data = await response.json();
-                    if (!data.items || data.items.length === 0) {
-                        return [];
-                    }
-                    return data.items;
-                } catch (error) {
-                    logError('Google Image search error', error);
-                    throw error;
-                }
-            }
+                            const snippets = searchResults.map(result => ({
+                                snippet: result.snippet,
+                            }));
+                            const promptContext = setupGetAnswerPrompt(snippets, imageResults);
+                            const groqResponse = await requestGroq(query, promptContext);
+                            const groqText = groqResponse.choices[0].message.content;
+                            summaryDiv.innerHTML = `<h3>Summary:</h3><p>${groqText}</p>`;
 
-            function displayResults(textResults, imageResults, container) {
-                container.innerHTML = '';
-
-                // Display news results
-                const textResultsDiv = document.createElement('div');
-                textResultsDiv.innerHTML = '<h3>News Results:</h3>';
-                textResults.forEach(result => {
-                    const resultDiv = document.createElement('div');
-                    resultDiv.className = 'news-result';
-                    resultDiv.innerHTML = `<h4><a href="${result.url}" target="_blank">${result.title}</a></h4><p>${result.snippet || result.content}</p>`;
-                    textResultsDiv.appendChild(resultDiv);
-                });
-                container.appendChild(textResultsDiv);
-
-                // Display image results
-                if (imageResults.length > 0 && showImagesCheckbox.checked) {
-                    const imageResultsDiv = document.createElement('div');
-                    imageResultsDiv.innerHTML = '<h3>Image Results:</h3>';
-                    imageResultsDiv.style.whiteSpace = 'nowrap';
-                    imageResultsDiv.style.overflowX = 'auto';
-                    imageResultsDiv.style.display = 'flex';
-                    imageResults.forEach(image => {
-                        const imgDiv = document.createElement('div');
-                        imgDiv.style.display = 'inline-block';
-                        imgDiv.style.height = '200px';
-                        imgDiv.style.marginRight = '10px';
-                        imgDiv.innerHTML = `<img src="${image.link}" alt="News Image" style="height: 100%; width: auto;" onerror="this.onerror=null; this.src='placeholder.jpg';">`;
-                        imageResultsDiv.appendChild(imgDiv);
+                        } catch (error) {
+                            logError("Search error", error);
+                        }
                     });
-                    container.appendChild(imageResultsDiv);
-                }
+
+                    function displayResults(results) {
+                        resultsDiv.innerHTML = '<h3>News Results:</h3>';
+                        results.forEach(result => {
+                            const resultDiv = document.createElement('div');
+                            resultDiv.className = 'news-result';
+                            resultDiv.innerHTML = `
+                                <h4><a href="${result.url}" target="_blank">${result.title}</a></h4>
+                                <p>${result.snippet || result.content}</p>
+                            `;
+                            resultsDiv.appendChild(resultDiv);
+                        });
+                    }
+
+                    function displayImages(images) {
+                        imagesContainer.innerHTML = '<h3>Image Results:</h3>';
+                        images.forEach(image => {
+                            const imageDiv = document.createElement('div');
+                            imageDiv.className = 'image-item';
+                            imageDiv.innerHTML = `<img src="${image.link}" alt="News Image" onerror="this.onerror=null; this.src='placeholder.jpg';">`;
+                            imagesContainer.appendChild(imageDiv);
+                        });
+                    }
+
+                    // Your existing utility functions remain the same
+                    async function checkInternetConnection() {
+                        try {
+                            await fetch('https://www.google.com', { mode: 'no-cors', cache: 'no-store' });
+                            return true;
+                        } catch {
+                            return false;
+                        }
+                    }
+
+                    async function searchWithTavily(query) {
+                        try {
+                            const response = await fetch('https://api.tavily.com/search', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    api_key: CONFIG.TAVILY_API_KEY,
+                                    query: query,
+                                    max_results: 10,
+                                    search_depth: "news"
+                                })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`Tavily AI request failed: ${response.status}`);
+                            }
+
+                            const data = await response.json();
+                            if (!data.results || data.results.length === 0) {
+                                throw new Error('No results returned from Tavily AI');
+                            }
+                            return data.results;
+                        } catch (error) {
+                            throw error;
+                        }
+                    }
+
+                    async function searchImagesWithGoogle(query) {
+                        try {
+                            const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${query}&searchType=image&num=4`);
+
+                            if (!response.ok) {
+                                throw new Error(`Google Image Search error: ${response.status}`);
+                            }
+
+                            const data = await response.json();
+                            return data.items || [];
+                        } catch (error) {
+                            throw error;
+                        }
+                    }
+
+                    function setupGetAnswerPrompt(snippets, images) {
+                        const startingContext = `Answer all this  1. A detailed, paragraphed, comprehensive answer to the question. It must be accurate, high-quality, and expertly written in a positive, interesting, and engaging manner. The answer should be informative and in the same language as the user question. Aim for at least 300 words in your response.  
+                        2. After your main answer, provide a section titled "Image Descriptions" where you describe how each of the provided images relates to the topic. Use the format: "Image X: [Brief description and relevance to the topic]"`;
+
+                        const snippetsText = snippets.map((s, i) => `[citation:${i + 1}] ${s.snippet}`).join('\n\n');
+                        const imageContext = "\nHere are descriptions of relevant images:\n" + images.map((_, index) => `Image ${index + 1}: [Brief description and relevance to the topic]`).join('\n');
+                        
+                        return `${startingContext}\n\n${snippetsText}\n\n${imageContext}\n\nUse the provided information to create a comprehensive and engaging response.`;
+                    }
+
+                    async function requestGroq(query, context) {
+                        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
+                            },
+                            body: JSON.stringify({
+                                model: "mixtral-8x7b-32768",
+                                messages: [
+                                    { role: "system", content: context },
+                                    { role: "user", content: query }
+                                ],
+                                temperature: 0.7,
+                                max_tokens: 3000,
+                            }),
+                        });
+
+                        return response.json();
+                    }
+                });
+            } catch (error) {
+                logError("Initialization error", error);
             }
-
-function getSnippetsForPrompt(snippets) {
-    return snippets.map((s, i) => `[citation:${i + 1}] ${s.snippet}`).join('\n\n');
-}
-
-function setupGetAnswerPrompt(snippets, images) {
-    const startingContext = `Answer all this  1. A detailed, paragraphed, comprehensive answer to the question. It must be accurate, high-quality, and expertly written in a positive, interesting, and engaging manner. The answer should be informative and in the same language as the user question. Aim for at least 300 words in your response.  
-2. After your main answer, provide a section titled "Image Descriptions" where you describe how each of the provided images relates to the topic. Use the format: "Image X: [Brief description and relevance to the topic]"  
-For all parts of your response, you will be provided with a set of citations to the question. Each will start with a reference number like [citation:x], where x is a number. Always use the related citations and cite the citation at the end of each sentence in the format [citation:x]. If a sentence comes from multiple citations, please list all applicable citations, like [citation:2][citation:3].  
-Here are the provided citations:`;
-
-    const imageContext = "\nHere are descriptions of relevant images:\n" +
-        images.map((_, index) => `Image ${index + 1}: [Brief description and relevance to the topic]`).join('\n');
-
-    const finalContext = "Use the provided information to create a comprehensive and engaging response.";
-    return `${startingContext}\n\n${getSnippetsForPrompt(snippets)}\n\n${imageContext}\n\n${finalContext}`;
-}
-
-function requestTavily(query, searchDepth = "advanced", topic = "news", maxResults = 5, maxTokens = 4000, temperature = 0.7) {
-    const TAVILY_API_ENDPOINT = "https://api.tavily.com/search";
-    const requestBody = {
-        query: query,
-        options: {
-            searchDepth: searchDepth,
-            topic: topic,
-            maxResults: maxResults,
-            includeAnswer: true,
-            includeImages: true,
-            includeImageDescriptions: true
-        },
-    };
-
-    return fetch(TAVILY_API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${CONFIG.TAVILY_API_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-    })
-        .then(response => response.json())
-        .then(data => {
-            const context = setupGetAnswerPrompt(data.results, data.images);
-            return requestGroq(query, context, maxTokens);
-        });
-}
-
-function requestGroq(query, context, maxTokens = 3000, model = "mixtral-8x7b-32768", temperature = 0.7) {
-    const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
-
-    const requestBody = {
-        model: model,
-        messages: [
-            { role: "system", content: context },
-            { role: "user", content: query }
-        ],
-        temperature: temperature,
-        max_tokens: maxTokens,
-    };
-
-    return fetch(GROQ_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-    })
-        .then(response => response.json());
-}
-
-})();
+        })();
     </script>
 </body>
-
 </html>
