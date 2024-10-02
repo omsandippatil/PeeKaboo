@@ -117,7 +117,7 @@
                 }
             }
 
-            async function searchWithTavily(query) {
+            async function searchWithTavily(query, searchDepth = "advanced", topic = "news") {
                 try {
                     const response = await fetch('https://api.tavily.com/search', {
                         method: 'POST',
