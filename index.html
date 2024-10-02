@@ -6,9 +6,7 @@
     <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
-    <!-- Import config.js -->
     <script src="Config/config.js" defer></script>
-    <script defer src="script.js"></script>
     <style>
         .custom-checkbox {
             appearance: none;
@@ -99,21 +97,30 @@
                         throw new Error('No internet connection');
                     }
 
+                    console.log("Searching with Tavily...");
                     const searchResults = await searchWithTavily(query);
+                    console.log("Tavily search results:", searchResults);
+
                     if (searchResults.length === 0) {
                         throw new Error('No results found');
                     }
 
                     let imageResults = [];
                     if (showImagesCheckbox.checked) {
+                        console.log("Searching for images...");
                         imageResults = await searchImagesWithGoogle(query);
+                        console.log("Image search results:", imageResults);
                     }
 
                     displayResults(searchResults, imageResults, resultsDiv);
+
+                    console.log("Summarizing with Groq...");
                     const summary = await summarizeWithGroq(searchResults);
+                    console.log("Groq summary:", summary);
                     summaryDiv.innerHTML = `<h3>Summary:</h3><p>${summary}</p>`;
 
                 } catch (error) {
+                    console.error("Search error:", error);
                     resultsDiv.innerHTML = `Error: ${error.message}. Please try again.`;
                     summaryDiv.innerHTML = '';
                 }
@@ -150,7 +157,7 @@
                     return data.results || [];
                 } catch (error) {
                     console.error('Tavily AI search error:', error);
-                    return [];
+                    throw error;
                 }
             }
 
@@ -167,7 +174,7 @@
                     return data.items || [];
                 } catch (error) {
                     console.error('Google Image search error:', error);
-                    return [];
+                    throw error;
                 }
             }
 
@@ -198,7 +205,7 @@
                     return data.choices[0].text.trim() || 'No summary available';
                 } catch (error) {
                     console.error('Groq summarization error:', error);
-                    return 'Summary failed';
+                    throw error;
                 }
             }
 
@@ -219,6 +226,7 @@
                 // Display image results (if available)
                 if (imageResults.length > 0 && showImagesCheckbox.checked) {
                     const imageResultsDiv = document.createElement('div');
+                    imageResultsDiv.innerHTML = '<h3>Image Results:</h3>';
                     imageResultsDiv.style.whiteSpace = 'nowrap';
                     imageResultsDiv.style.overflowX = 'auto';
                     imageResultsDiv.style.display = 'flex';
