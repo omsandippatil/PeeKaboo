@@ -18,7 +18,7 @@
             <div id="suggestions" class="suggestions"></div>
             <button type="submit">EXECUTE</button>
         </form>
-        <div id="results" class="image-grid"></div>
+        <div id="results" class="image-scroll-container"></div>
         <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
     </div>
 
@@ -99,20 +99,17 @@
                 }
             }
 
-            // Function to display image results in a grid layout with the same height and variable width
+            // Function to display image results in a horizontally scrollable container
             function displayImages(imageResults, container) {
                 container.innerHTML = '';
-                container.style.display = 'flex';
-                container.style.flexWrap = 'wrap';
-                container.style.gap = '10px';
+                container.style.whiteSpace = 'nowrap';
+                container.style.overflowX = 'auto';
 
                 imageResults.forEach(image => {
                     const imgDiv = document.createElement('div');
-                    imgDiv.style.flex = '0 1 auto'; // Ensure the div adapts to the content width
-                    imgDiv.style.display = 'flex';
-                    imgDiv.style.alignItems = 'center';
-                    imgDiv.style.justifyContent = 'center';
-                    imgDiv.style.height = '200px'; // Fixed height for all image containers
+                    imgDiv.style.display = 'inline-block';
+                    imgDiv.style.height = '200px'; // Fixed height for all images
+                    imgDiv.style.marginRight = '10px';
                     imgDiv.innerHTML = `<img src="${image.link}" alt="" style="height: 100%; width: auto;">`;
                     container.appendChild(imgDiv);
                 });
