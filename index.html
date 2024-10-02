@@ -16,9 +16,13 @@
         <form id="searchForm">
             <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
             <div id="suggestions" class="suggestions"></div>
+            <label for="showImagesCheckbox">
+                <input type="checkbox" id="showImagesCheckbox" checked> Show Images
+            </label>
             <button type="submit">EXECUTE</button>
         </form>
         <div id="results" class="image-scroll-container"></div>
+        <div id="summary"></div>
         <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
     </div>
 
@@ -28,6 +32,8 @@
             const suggestionsDiv = document.getElementById("suggestions");
             const searchForm = document.getElementById("searchForm");
             const resultsDiv = document.getElementById("results");
+            const summaryDiv = document.getElementById("summary");
+            const showImagesCheckbox = document.getElementById("showImagesCheckbox");
 
             const suggestions = ["Technology", "Science", "Latest Trends", "AI News", "Web Development", "Space Exploration", "Environmental Issues"];
 
@@ -55,6 +61,7 @@
                 e.preventDefault();
                 const query = searchInput.value;
                 resultsDiv.innerHTML = 'Processing query...';
+                summaryDiv.innerHTML = '';
 
                 try {
                     const isOnline = await checkInternetConnection();
@@ -62,16 +69,24 @@
                         throw new Error('No internet connection');
                     }
 
-                    const imageResults = await searchImagesWithGoogle(query);
+                    const textResults = await searchWithSerper(query);
+                    let imageResults = [];
 
-                    if (imageResults.length === 0) {
-                        throw new Error('No image results found');
+                    if (showImagesCheckbox.checked) {
+                        imageResults = await searchImagesWithGoogle(query);
                     }
 
-                    displayImages(imageResults, resultsDiv);
+                    if (textResults.length === 0 && imageResults.length === 0) {
+                        throw new Error('No results found');
+                    }
+
+                    displayResults(textResults, imageResults, resultsDiv);
+                    const summary = await summarizeWithTavily(textResults);
+                    summaryDiv.innerHTML = `<h3>Summary:</h3><p>${summary}</p>`;
 
                 } catch (error) {
                     resultsDiv.innerHTML = `Error: ${error.message}. Please try again.`;
+                    summaryDiv.innerHTML = '';
                 }
             });
 
@@ -99,20 +114,93 @@
                 }
             }
 
-            // Function to display image results in a horizontally scrollable container
-            function displayImages(imageResults, container) {
-                container.innerHTML = '';
-                container.style.whiteSpace = 'nowrap';
-                container.style.overflowX = 'auto';
+            // Function to search using Serper API
+            async function searchWithSerper(query) {
+                try {
+                    const response = await fetch(`https://api.serper.dev/search`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${CONFIG.SERPER_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            q: query,
+                            num: 10,
+                            tbs: 'qdr:d'
+                        })
+                    });
 
-                imageResults.forEach(image => {
-                    const imgDiv = document.createElement('div');
-                    imgDiv.style.display = 'inline-block';
-                    imgDiv.style.height = '200px'; // Fixed height for all images
-                    imgDiv.style.marginRight = '10px';
-                    imgDiv.innerHTML = `<img src="${image.link}" alt="" style="height: 100%; width: auto;">`;
-                    container.appendChild(imgDiv);
+                    if (!response.ok) {
+                        throw new Error(`Serper API request failed: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    return data.organic || [];
+                } catch (error) {
+                    console.error('Serper API search error:', error);
+                    return [];
+                }
+            }
+
+            // Function to summarize the text using Tavily AI API
+            async function summarizeWithTavily(textResults) {
+                const textContext = textResults.map((result, index) => `${index + 1}. ${result.title}: ${result.snippet}`).join('\n');
+
+                try {
+                    const response = await fetch('https://api.tavily.ai/summarize', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: 'tavily-large',
+                            input: textContext
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Tavily AI request failed: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    return data.summary || 'No summary available';
+                } catch (error) {
+                    console.error('Tavily AI summarization error:', error);
+                    return 'Summary failed';
+                }
+            }
+
+            // Function to display text and image results
+            function displayResults(textResults, imageResults, container) {
+                container.innerHTML = '';
+
+                // Display text results
+                const textResultsDiv = document.createElement('div');
+                textResultsDiv.innerHTML = '<h3>Web Search Results:</h3>';
+                textResults.forEach(result => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.innerHTML = `<h4><a href="${result.link}" target="_blank">${result.title}</a></h4><p>${result.snippet}</p>`;
+                    textResultsDiv.appendChild(resultDiv);
                 });
+                container.appendChild(textResultsDiv);
+
+                // Display image results (if available)
+                if (imageResults.length > 0 && showImagesCheckbox.checked) {
+                    const imageResultsDiv = document.createElement('div');
+                    imageResultsDiv.style.whiteSpace = 'nowrap';
+                    imageResultsDiv.style.overflowX = 'auto';
+                    imageResultsDiv.style.display = 'flex';
+                    imageResults.forEach(image => {
+                        const imgDiv = document.createElement('div');
+                        imgDiv.style.display = 'inline-block';
+                        imgDiv.style.height = '200px'; // Fixed height for all images
+                        imgDiv.style.marginRight = '10px';
+                        imgDiv.innerHTML = `<img src="${image.link}" alt="" style="height: 100%; width: auto;">`;
+                        imageResultsDiv.appendChild(imgDiv);
+                    });
+                    container.appendChild(imageResultsDiv);
+                }
             }
         });
     </script>
