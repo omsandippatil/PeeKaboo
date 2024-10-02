@@ -3,41 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeeKaboo?</title>
+    <title>PeeKaboo? - Retro Edition</title>
     <link rel="stylesheet" href="style.css">
     <script src="Config/config.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>PeeKaboo?</h1>
+        <header>
+            <h1>PeeKaboo?</h1>
+            <div class="retro-decoration"></div>
+        </header>
+        
         <div class="search-wrapper">
             <form id="searchForm">
                 <div class="search-container">
-                    <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
+                    <input type="text" id="searchInput" name="q" placeholder="What's on your mind?" required>
                     <div class="control-group">
                         <label class="checkbox-container">
                             <input type="checkbox" id="showImagesCheckbox" checked>
                             <span>Show Images</span>
                         </label>
-                        <button type="submit">Search</button>
+                        <button type="submit">Peek!</button>
                     </div>
                 </div>
                 <div class="suggestions">
-                    <span class="question">What is today's breaking news?</span>
-                    <span class="question">Trends in computer science technology</span>
-                    <span class="question">Software Testing Methods</span>
-                    <span class="question">Why is interstellar the best movie?</span>
+                    <span class="question">What's today's hot gossip?</span>
+                    <span class="question">Groovy tech trends</span>
+                    <span class="question">Far out software testing</span>
+                    <span class="question">Why Interstellar is outta sight!</span>
                 </div>
             </form>
         </div>
 
-        <div class="images-container" id="imagesContainer"></div>
-        <div id="results" class="results-container"></div>
-        <div id="summary" class="summary-container"></div>
+        <div class="content-area">
+            <div class="images-container" id="imagesContainer"></div>
+            <div id="results" class="results-container"></div>
+            <div id="summary" class="summary-container"></div>
+        </div>
         
-        <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
+        <footer>
+            <div class="retro-decoration"></div>
+            <p>&copy; 2024 PeeKaboo | Powered by Illuminati</p>
+        </footer>
     </div>
-
     <script>
         (function() {
             const API = {
