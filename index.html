@@ -107,37 +107,36 @@
                     }
                 }
 
-                async function searchWithTavily(query) {
-                    try {
-                        console.log("Tavily API Key:", CONFIG.TAVILY_API_KEY.substring(0, 5) + "...");
-                        const response = await fetch('https://api.tavily.com/search', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${CONFIG.TAVILY_API_KEY}`
-                            },
-                            body: JSON.stringify({
-                                query: query,
-                                max_results: 10,
-                                search_depth: "advanced"
-                            })
-                        });
+                 async function searchWithTavily(query) {
+                try {
+                    const response = await fetch('https://api.tavily.com/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            api_key: CONFIG.TAVILY_API_KEY,
+                            query: query,
+                            max_results: 10,
+                            search_depth: "advanced"
+                        })
+                    });
 
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            throw new Error(`Tavily AI request failed: ${response.status} ${response.statusText}. ${errorText}`);
-                        }
-
-                        const data = await response.json();
-                        if (!data.results || data.results.length === 0) {
-                            throw new Error('No results returned from Tavily AI');
-                        }
-                        return data.results;
-                    } catch (error) {
-                        logError('Tavily AI search error', error);
-                        throw error;
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Tavily AI request failed: ${response.status} ${response.statusText}. ${errorText}`);
                     }
+
+                    const data = await response.json();
+                    if (!data.results || data.results.length === 0) {
+                        throw new Error('No results returned from Tavily AI');
+                    }
+                    return data.results;
+                } catch (error) {
+                    console.error('Tavily AI search error:', error);
+                    throw error;
                 }
+            }
 
                 async function searchImagesWithGoogle(query) {
                     try {
