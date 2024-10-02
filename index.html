@@ -18,8 +18,7 @@
             <div id="suggestions" class="suggestions"></div>
             <button type="submit">EXECUTE</button>
         </form>
-        <div id="results"></div>
-        <div id="summary"></div>
+        <div id="results" class="image-grid"></div>
         <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
     </div>
 
@@ -29,7 +28,6 @@
             const suggestionsDiv = document.getElementById("suggestions");
             const searchForm = document.getElementById("searchForm");
             const resultsDiv = document.getElementById("results");
-            const summaryDiv = document.getElementById("summary");
 
             const suggestions = ["Technology", "Science", "Latest Trends", "AI News", "Web Development", "Space Exploration", "Environmental Issues"];
 
@@ -57,7 +55,6 @@
                 e.preventDefault();
                 const query = searchInput.value;
                 resultsDiv.innerHTML = 'Processing query...';
-                summaryDiv.textContent = '';
 
                 try {
                     const isOnline = await checkInternetConnection();
@@ -102,19 +99,22 @@
                 }
             }
 
-            // Function to display image results as pictures only
+            // Function to display image results in a grid layout with same height
             function displayImages(imageResults, container) {
                 container.innerHTML = '';
-                container.style.display = 'flex';
-                container.style.flexWrap = 'wrap';
+                container.style.display = 'grid';
+                container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+                container.style.gridGap = '10px';
 
                 imageResults.forEach(image => {
-                    const imgItem = document.createElement('div');
-                    imgItem.style.flex = '1 1 200px';
-                    imgItem.style.height = '200px'; // Ensures all images are in a container with the same height
-                    imgItem.style.overflow = 'hidden';
-                    imgItem.innerHTML = `<img src="${image.link}" alt="" style="max-width: 100%; max-height: 100%; object-fit: cover;">`;
-                    container.appendChild(imgItem);
+                    const imgDiv = document.createElement('div');
+                    imgDiv.style.height = '200px'; // Fixed height for all image containers
+                    imgDiv.style.overflow = 'hidden';
+                    imgDiv.style.display = 'flex';
+                    imgDiv.style.alignItems = 'center';
+                    imgDiv.style.justifyContent = 'center';
+                    imgDiv.innerHTML = `<img src="${image.link}" alt="" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    container.appendChild(imgDiv);
                 });
             }
         });
