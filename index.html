@@ -5,72 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PeeKaboo?</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <!-- Import config.js -->
+    <script src="Config/config.js" defer></script>
+    <script defer src="script.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #ff6600;
-            text-align: center;
-        }
-        #searchForm {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #searchInput {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 2px solid #ff6600;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #ff6600;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .retro-checkbox {
+        .custom-checkbox {
             appearance: none;
+            -webkit-appearance: none;
             width: 20px;
             height: 20px;
             border: 2px solid #ff6600;
-            border-radius: 3px;
-            margin-right: 10px;
+            border-radius: 4px;
+            outline: none;
             cursor: pointer;
-            position: relative;
+            vertical-align: middle;
         }
-        .retro-checkbox:checked::before {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ff6600;
+        .custom-checkbox:checked {
+            background-color: #ff6600;
+        }
+        .custom-checkbox:checked::before {
+            content: '\2713';
+            display: block;
+            text-align: center;
+            color: white;
             font-size: 16px;
+            line-height: 20px;
         }
-        .image-scroll-container {
-            display: flex;
-            overflow-x: auto;
-            margin-bottom: 20px;
-        }
-        .image-scroll-container img {
-            height: 150px;
+        label {
+            display: inline-flex;
+            align-items: center;
             margin-right: 10px;
         }
     </style>
@@ -81,34 +45,24 @@
         <form id="searchForm">
             <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
             <div id="suggestions" class="suggestions"></div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="showImagesCheckbox" class="retro-checkbox" checked>
-                <label for="showImagesCheckbox">Show Images</label>
-            </div>
+            <label>
+                <input type="checkbox" id="showImagesCheckbox" class="custom-checkbox" checked>
+                <span>Show Images</span>
+            </label>
             <button type="submit">EXECUTE</button>
         </form>
-        <div id="imageResults" class="image-scroll-container"></div>
         <div id="results"></div>
         <div id="summary"></div>
         <footer>&copy; 2024 PeeKaboo | Powered by Illuminati</footer>
     </div>
 
     <script>
-        const CONFIG = {
-            GOOGLE_API_KEY: 'AIzaSyAv0eINGFdlMmMdCB-JsgyJ7C1uDHYMNhQ',  
-            GOOGLE_SEARCH_ENGINE_ID: 'c1415a5bba2664a8c',  
-            SERPER_API_KEY: 'e057f2e5af486fc09917e3e0964783c73fd33358',  
-            GROQ_API_KEY: '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',
-            TAVILY_API_KEY: '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'
-        };
-
         document.addEventListener("DOMContentLoaded", function() {
             const searchInput = document.getElementById("searchInput");
             const suggestionsDiv = document.getElementById("suggestions");
             const searchForm = document.getElementById("searchForm");
             const resultsDiv = document.getElementById("results");
             const summaryDiv = document.getElementById("summary");
-            const imageResultsDiv = document.getElementById("imageResults");
             const showImagesCheckbox = document.getElementById("showImagesCheckbox");
 
             const suggestions = ["Technology", "Science", "Latest Trends", "AI News", "Web Development", "Space Exploration", "Environmental Issues"];
@@ -138,7 +92,6 @@
                 const query = searchInput.value;
                 resultsDiv.innerHTML = 'Processing query...';
                 summaryDiv.innerHTML = '';
-                imageResultsDiv.innerHTML = '';
 
                 try {
                     const isOnline = await checkInternetConnection();
@@ -151,20 +104,18 @@
                         throw new Error('No results found');
                     }
 
-                    displayResults(searchResults, resultsDiv);
-
+                    let imageResults = [];
                     if (showImagesCheckbox.checked) {
-                        const imageResults = await searchImagesWithGoogle(query);
-                        displayImageResults(imageResults, imageResultsDiv);
+                        imageResults = await searchImagesWithGoogle(query);
                     }
 
+                    displayResults(searchResults, imageResults, resultsDiv);
                     const summary = await summarizeWithGroq(searchResults);
                     summaryDiv.innerHTML = `<h3>Summary:</h3><p>${summary}</p>`;
 
                 } catch (error) {
                     resultsDiv.innerHTML = `Error: ${error.message}. Please try again.`;
                     summaryDiv.innerHTML = '';
-                    imageResultsDiv.innerHTML = '';
                 }
             });
 
@@ -251,25 +202,36 @@
                 }
             }
 
-            // Function to display search results
-            function displayResults(results, container) {
-                container.innerHTML = '<h3>Search Results:</h3>';
-                results.forEach(result => {
+            // Function to display text and image results
+            function displayResults(textResults, imageResults, container) {
+                container.innerHTML = '';
+
+                // Display text results
+                const textResultsDiv = document.createElement('div');
+                textResultsDiv.innerHTML = '<h3>Web Search Results:</h3>';
+                textResults.forEach(result => {
                     const resultDiv = document.createElement('div');
                     resultDiv.innerHTML = `<h4><a href="${result.url}" target="_blank">${result.title}</a></h4><p>${result.content}</p>`;
-                    container.appendChild(resultDiv);
+                    textResultsDiv.appendChild(resultDiv);
                 });
-            }
+                container.appendChild(textResultsDiv);
 
-            // Function to display image results
-            function displayImageResults(images, container) {
-                container.innerHTML = '';
-                images.forEach(image => {
-                    const img = document.createElement('img');
-                    img.src = image.link;
-                    img.alt = image.title;
-                    container.appendChild(img);
-                });
+                // Display image results (if available)
+                if (imageResults.length > 0 && showImagesCheckbox.checked) {
+                    const imageResultsDiv = document.createElement('div');
+                    imageResultsDiv.style.whiteSpace = 'nowrap';
+                    imageResultsDiv.style.overflowX = 'auto';
+                    imageResultsDiv.style.display = 'flex';
+                    imageResults.forEach(image => {
+                        const imgDiv = document.createElement('div');
+                        imgDiv.style.display = 'inline-block';
+                        imgDiv.style.height = '200px'; // Fixed height for all images
+                        imgDiv.style.marginRight = '10px';
+                        imgDiv.innerHTML = `<img src="${image.link}" alt="${image.title}" style="height: 100%; width: auto;">`;
+                        imageResultsDiv.appendChild(imgDiv);
+                    });
+                    container.appendChild(imageResultsDiv);
+                }
             }
         });
     </script>
