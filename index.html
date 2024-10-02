@@ -31,7 +31,7 @@
             </form>
         </div>
 
-        <div id="imagesContainer" class="images-grid"></div>
+        <div class="images-container" id="imagesContainer"></div>
         <div id="results" class="results-container"></div>
         <div id="summary" class="summary-container"></div>
         
@@ -131,7 +131,15 @@
                         showImages ? API.searchImages(query) : []
                     ]);
 
-                    if (showImages) displayImages(imageResults);
+                    if (showImages && imageResults.length > 0) {
+                        imagesContainer.innerHTML = '<h3>Image Results:</h3><div class="images-scroll">' + 
+                            imageResults.map(image => `
+                                <div class="image-item">
+                                    <img src="${image.link}" alt="News Image" onerror="this.src='placeholder.jpg'">
+                                </div>
+                            `).join('') + '</div>';
+                    }
+
                     displayResults(searchResults);
 
                     const context = buildGroqContext(searchResults, imageResults);
@@ -149,15 +157,6 @@
                     <div class="news-result">
                         <h4><a href="${result.url}" target="_blank">${result.title}</a></h4>
                         <p>${result.snippet || result.content}</p>
-                    </div>
-                `).join('');
-            }
-
-            function displayImages(images) {
-                const container = document.getElementById("imagesContainer");
-                container.innerHTML = images.map(image => `
-                    <div class="image-item">
-                        <img src="${image.link}" alt="News Image" onerror="this.src='placeholder.jpg'">
                     </div>
                 `).join('');
             }
