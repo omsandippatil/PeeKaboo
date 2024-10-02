@@ -3,49 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeeKaboo? - Retro Edition</title>
+    <title>PeeKaboo?</title>
     <link rel="stylesheet" href="style.css">
     <script src="Config/config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>PeeKaboo?</h1>
-            <div class="retro-decoration"></div>
-        </header>
-        
+        <h1><i class="fas fa-eye"></i> PeeKaboo?</h1>
         <div class="search-wrapper">
             <form id="searchForm">
                 <div class="search-container">
-                    <input type="text" id="searchInput" name="q" placeholder="What's on your mind?" required>
-                    <div class="control-group">
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="showImagesCheckbox" checked>
-                            <span>Show Images</span>
-                        </label>
-                        <button type="submit">Peek!</button>
-                    </div>
+                    <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="control-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="showImagesCheckbox" checked>
+                        <span class="checkmark"></span>
+                        <span>Show Images</span>
+                    </label>
                 </div>
                 <div class="suggestions">
-                    <span class="question">Hot gossip</span>
-                    <span class="question">Tech trends</span>
-                    <span class="question">Interstellar</span>
+                    <span class="question"><i class="fas fa-globe"></i> Global climate change impact</span>
+                    <span class="question"><i class="fas fa-microchip"></i> AI advancements in healthcare</span>
+                    <span class="question"><i class="fas fa-rocket"></i> Space exploration milestones</span>
+                    <span class="question"><i class="fas fa-virus"></i> Emerging infectious diseases</span>
                 </div>
             </form>
         </div>
 
-        <div class="content-area">
-            <div class="images-container" id="imagesContainer"></div>
-            <div id="results" class="results-container"></div>
-            <div id="summary" class="summary-container"></div>
-        </div>
+        <div class="images-container" id="imagesContainer"></div>
+        <div id="results" class="results-container"></div>
+        <div id="summary" class="summary-container"></div>
         
-        <footer>
-            <div class="retro-decoration"></div>
-            <p>&copy; 2024 PeeKaboo | Powered by Illuminati</p>
-        </footer>
+        <footer><i class="far fa-copyright"></i> 2024 PeeKaboo | Powered by Illuminati</footer>
     </div>
-
     <script>
         (function() {
             const API = {
