@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { Lightbulb, TrendingUp } from "lucide-react";
 import { Progress } from "@/app/components/ui/progress";
 import "app/styles/GoogleAnalytics.css";
-
 // Import the hooks and types from the previous API implementation
 import { useGoogleSearchStore, Trigger } from "@/app/api/top10triggers"; // Adjust import path as needed
 
