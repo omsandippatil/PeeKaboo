@@ -1,3 +1,9 @@
+'use server';
+
+import fs from 'fs';
+import path from 'path';
+
+
 export interface RedditResult {
   title: string;
   subreddit: string;
@@ -145,4 +151,22 @@ export const fetchRedditResults = async (
     console.error("Error in fetchRedditResults:", error);
     return null;
   }
+};
+
+export const exportRedditResults = async (query: string) => {
+  const redditData = await fetchRedditResults(query);
+  if (!redditData) {
+    console.error("No data to export.");
+    return;
+  }
+
+  const filePath = path.join(process.cwd(), `reddit_results_${Date.now()}.json`);
+  
+  fs.writeFile(filePath, JSON.stringify(redditData, null, 2), (err) => {
+    if (err) {
+      console.error("Error writing file:", err);
+    } else {
+      console.log(`Reddit results exported successfully: ${filePath}`);
+    }
+  });
 };
