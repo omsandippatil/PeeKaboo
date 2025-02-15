@@ -311,3 +311,23 @@ Ensure the analysis is data-driven, uses professional marketing terminology, and
     return truncated.substring(0, truncated.lastIndexOf(' ')) + '...';
   }
 }
+
+export const fetchAndProcessQuoraData = async (query: string): Promise<AnalysisResult | null> => {
+  try {
+    // Use the QuoraAnalysisService to analyze the query
+    const result = await QuoraAnalysisService.analyzeQuoraData(query);
+
+    // If the analysis was successful, return the result
+    if (result.success) {
+      return result;
+    } else {
+      // If the analysis failed, log the error and return null
+      console.error('Failed to analyze Quora data:', result.error);
+      return null;
+    }
+  } catch (error) {
+    // Handle any unexpected errors
+    console.error('Error in fetchAndProcessQuoraData:', error);
+    return null;
+  }
+}

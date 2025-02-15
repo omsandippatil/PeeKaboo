@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { fetchGoogleResults } from '@/app/api/googleAnalyticsApi';
+import { fetchRedditResults } from '@/app/api/redditAnalysis';
+import { fetchAndProcessQuoraData } from '@/app/api/quoraAnalytics';
+
 
 export interface Trigger {
   heading: string;
@@ -14,7 +18,7 @@ export interface TriggersResult {
   queryContext: string;
 }
 
-export const useGoogleSearchStore = () => {
+export const useTriggerStore = () => {
   const [triggersData, setTriggersData] = useState<TriggersResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,21 +34,33 @@ export const useGoogleSearchStore = () => {
         throw new Error("Groq API key is missing");
       }
 
-      // Enhanced prompt for more detailed trigger generation
+      // Fetch responses from all three sources
+      const [googleResults, redditResults, otherResults] = await Promise.all([
+        fetchGoogleResults(query),
+        fetchRedditResults(query),
+        fetchAndProcessQuoraData(query),
+      ]);
+
+      if (!googleResults || !redditResults || !otherResults) {
+        throw new Error("One or more data sources failed to fetch results.");
+      }
+
+      // Combine all results into a single content structure
+      const combinedResults = {
+        google: googleResults,
+        reddit: redditResults,
+        other: otherResults,
+      };
+
+      // Enhanced prompt for trigger generation
       const context = `You are a world-class marketing strategist and psychological insight expert. 
 
-      For the given search query, generate 10 powerful marketing triggers that go beyond surface-level insights. Each trigger should provide:
+      Using the provided data from Google, Reddit, and other sources, generate 10 powerful marketing triggers that go beyond surface-level insights. Each trigger should provide:
       
       1. A crisp, memorable 1-2 word heading
       2. A concise description (20-30 words)
       3. A deeper psychological or emotional trigger
       4. Potential market impact score (0-100)
-      
-      Requirements:
-      - Be innovative and psychologically insightful
-      - Connect deeply with human emotions and motivations
-      - Provide actionable marketing perspectives
-      - Ensure triggers are relevant to the search query
       
       Desired JSON Format:
       {
@@ -73,8 +89,8 @@ export const useGoogleSearchStore = () => {
             { role: "system", content: context },
             { 
               role: "user", 
-              content: `Generate advanced marketing triggers for: "${query}". 
-              Provide deep psychological insights, potential market impact, and innovative marketing strategies.` 
+              content: `Generate advanced marketing triggers based on the following data: ${JSON.stringify(combinedResults)}. 
+              Provide deep psychological insights, potential market impact, and innovative marketing strategies.`
             },
           ],
           response_format: { type: "json_object" },
@@ -93,16 +109,13 @@ export const useGoogleSearchStore = () => {
       // Parse and validate the JSON
       const parsedTriggers: TriggersResult = JSON.parse(content);
 
-      // Validate the structure
       if (!parsedTriggers.triggers || !Array.isArray(parsedTriggers.triggers) || parsedTriggers.triggers.length !== 10) {
         throw new Error("Invalid triggers format");
       }
 
-      // Add query context and generation timestamp if not provided
       parsedTriggers.queryContext = query;
       parsedTriggers.generatedAt = Date.now();
 
-      // Update state
       setTriggersData(parsedTriggers);
       setIsLoading(false);
 
@@ -115,7 +128,6 @@ export const useGoogleSearchStore = () => {
     }
   };
 
-  // Clear triggers data
   const clearTriggersData = () => {
     setTriggersData(null);
   };
@@ -129,8 +141,7 @@ export const useGoogleSearchStore = () => {
   };
 };
 
-// Utility function for direct trigger fetching
 export const fetchTopTriggers = async (query: string): Promise<TriggersResult | null> => {
-  const store = useGoogleSearchStore();
+  const store = useTriggerStore();
   return await store.generateTopTriggers(query);
 };
